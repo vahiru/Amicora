@@ -29,14 +29,41 @@
         .container {
             max-width: 850px;
             margin: 0 auto;
+            padding: 0 1rem;
         }
 
         header {
             background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
             color: var(--white-color);
             text-align: center;
-            padding: 4rem 1rem;
+            padding: 2rem 1rem 2rem;
             text-shadow: 1px 1px 3px var(--shadow-color);
+        }
+        
+        nav {
+            padding-bottom: 1.5rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--white-color);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+
+        nav a:hover {
+            opacity: 1;
         }
 
         header h1 {
@@ -51,7 +78,7 @@
         }
 
         main {
-            padding: 2rem 1rem;
+            padding: 2rem 0;
         }
 
         .content-wrapper {
@@ -80,16 +107,34 @@
 
         a:hover {
             color: var(--secondary-color);
-            text-decoration: none;
         }
 
-        strong {
+        .server-address {
             background-color: #eef5ff;
-            padding: 5px 10px;
+            padding: 10px 15px;
             border-radius: 5px;
             font-family: "Courier New", Courier, monospace;
             border: 1px solid #dbeaff;
-            font-size: 1.1em;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--secondary-color);
         }
 
         ul, ol {
@@ -107,12 +152,38 @@
             font-size: 0.9em;
             color: #777;
         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                padding: 3rem 1rem;
+            }
+            header h1 {
+                font-size: 2.5rem;
+            }
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+            nav ul {
+                gap: 1.5rem;
+            }
+            nav a {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="#about">关于我们</a></li>
+                    <li><a href="#features">服务器特色</a></li>
+                    <li><a href="#join">如何加入</a></li>
+                </ul>
+            </nav>
             <h1>欢迎来到 Amicora</h1>
             <p>一个充满无限可能性的 Minecraft 世界</p>
         </div>
@@ -143,9 +214,13 @@
                         <li>打开你的 Minecraft 启动器。</li>
                         <li>选择“多人游戏”。</li>
                         <li>点击“添加服务器”。</li>
-                        <li>输入服务器地址：<strong>play.amicora.com</strong></li>
-                        <li>点击“完成”，然后加入服务器开始你的冒险！</li>
+                        <li>输入服务器地址：</li>
                     </ol>
+                    <div class="server-address">
+                        <span id="server-ip">play.vahiru.xyz</span>
+                        <button class="copy-btn" onclick="copyIp()" title="复制服务器地址">复制</button>
+                    </div>
+                    <p style="margin-top: 1rem;">然后点击“完成”，加入服务器开始你的冒险！</p>
                 </section>
             </div>
         </main>
@@ -153,10 +228,25 @@
 
     <footer>
         <div class="container">
-            <p>有疑问吗？加入我们的 <a href="#">Discord 服务器</a>！</p>
+            <p>有疑问吗？加入我们的 <a href="#" target="_blank" rel="noopener">Discord 服务器</a>！</p>
             <p>&copy; 2025 Amicora. 版权所有。</p>
         </div>
     </footer>
+
+    <script>
+        function copyIp() {
+            const ip = document.getElementById('server-ip').innerText;
+            navigator.clipboard.writeText(ip).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerText = '已复制!';
+                setTimeout(() => {
+                    btn.innerText = '复制';
+                }, 2000);
+            }).catch(err => {
+                console.error('无法复制IP地址: ', err);
+            });
+        }
+    </script>
 
 </body>
 </html>

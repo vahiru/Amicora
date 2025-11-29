@@ -907,6 +907,24 @@
           </div>
         </div>
       </div>
+
+       
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">神经新闻</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">AUTOMATED_INTELLIGENCE_UNIT</p>
+              <a href="https://neuro.lubeiluchen.cc/AIStudio" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问网站 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- 打字雨容器 -->
@@ -995,6 +1013,7 @@
           </div>
 
           
+<div class="section-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">        
 <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
   <div class="flex justify-between items-start mb-4">
     <h3 class="text-xl font-bold text-white">百宝箱</h3>
@@ -1009,6 +1028,23 @@
     </a>
   </div>
 </div>
+
+<div class="section-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">  
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">word.execute-me-master</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">开源:https://gitee.com/tea-mat/word.execute-me/</p>
+              <a href="扩展页\word.execute-me-master\index.html" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问扩展页 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+
 
 
     
@@ -1064,6 +1100,9 @@
             <span class="text-xl font-bold text-white">Amicora World</span>
           </div>
           <p class="text-gray-300 mb-4">一个友好、和谐的我的世界服务器社区，致力于为玩家提供优质的游戏体验。</p>
+          <a href="https://github.com/xinggreen" class="text-gray-300 hover:text-primary transition-colors">
+              <i class="fa fa-github text-xl"></i>
+            </a>
         </div>
         
         <div>
@@ -2451,6 +2490,115 @@ document.addEventListener('keydown', (e) => {
     document.getElementById('rain-container').classList.add('hidden');
   }
 });
+
+
+ // 更新访问量显示
+                document.getElementById('totalVisits').textContent = data.total_visits;
+                document.getElementById('todayVisits').textContent = data.today_visits;
+                document.getElementById('modalTotalVisits').textContent = data.total_visits;
+                document.getElementById('modalTodayVisits').textContent = data.today_visits;
+                
+                // 更新历史记录
+                const historyList = document.getElementById('visitHistoryList');
+                historyList.innerHTML = '';
+                
+                if (Object.keys(data.daily_history).length === 0) {
+                    historyList.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">暂无历史记录</div>';
+                } else {
+                    // 按日期倒序显示最近7天的记录
+                    const sortedDates = Object.keys(data.daily_history).sort((a, b) => new Date(b) - new Date(a)).slice(0, 7);
+                    
+                    sortedDates.forEach(date => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'history-item';
+                        historyItem.innerHTML = `
+                            <span>${date}</span>
+                            <span>${data.daily_history[date]} 次访问</span>
+                        `;
+                        historyList.appendChild(historyItem);
+                    });
+                }
+                
+            try {
+                // 在这里写需要捕获异常的代码
+            } catch (error) {
+                console.error('获取访问统计失败:', error);
+            }
+
+        function resetCountdown() {
+            countdown = 30;
+            document.getElementById('countdown').textContent = countdown;
+        }
+
+        function updateCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
+
+        // 事件监听
+        danmakuInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') openCaptcha();
+        });
+
+        danmakuInput.addEventListener('focus', () => {
+            isUserTyping = true;
+            document.getElementById('refreshStatus').textContent = '输入中暂停';
+        });
+
+        danmakuInput.addEventListener('blur', () => {
+            isUserTyping = false;
+            document.getElementById('refreshStatus').textContent = '自动刷新中';
+        });
+
+        // IP弹窗
+        document.getElementById('visitorCount').addEventListener('click', () => {
+            document.getElementById('ipModal').classList.add('active');
+        });
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('ipModal').classList.remove('active');
+        });
+        document.getElementById('ipModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('ipModal')) {
+                document.getElementById('ipModal').classList.remove('active');
+            }
+        });
+
+        // 访问统计弹窗
+        document.getElementById('visitStats').addEventListener('click', () => {
+            document.getElementById('statsModal').classList.add('active');
+            fetchVisitStats(); // 打开时刷新数据
+        });
+        document.getElementById('closeStatsModal').addEventListener('click', () => {
+            document.getElementById('statsModal').classList.remove('active');
+        });
+        document.getElementById('statsModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('statsModal')) {
+                document.getElementById('statsModal').classList.remove('active');
+            }
+        });
+
+        // 初始化
+        fetchDanmaku();
+        fetchStatus();
+        updateCurrentTime();
+        fetchVisitStats(); // 初始化时加载访问统计
+
+        // 定时器
+        setInterval(fetchDanmaku, 5000);
+        setInterval(updateCurrentTime, 30000);
+        setInterval(fetchVisitStats, 60000); // 每分钟更新一次访问统计
+
+        const countdownTimer = setInterval(() => {
+            if (isUserTyping) return;
+            countdown--;
+            document.getElementById('countdown').textContent = countdown;
+            if (countdown <= 0) {
+                fetchStatus();
+                resetCountdown();
+            }
+        }, 1000);
 </script>
 
 

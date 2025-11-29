@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amicora World - 聊天室</title>
+  <!-- 合并重复资源引入 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3ad59f', 
+            secondary: '#EC4899',
+            accent: '#10B981',
+            glass: 'rgba(255, 255, 255, 0.15)',
+            'glass-dark': 'rgba(17, 24, 39, 0.85)',
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'bounce-slow': 'bounce 2s infinite',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .message-in {
+        animation: slideInLeft 0.3s ease-out;
+      }
+      .message-out {
+        animation: slideInRight 0.3s ease-out;
+      }
+      .typing-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #9CA3AF;
+        animation: typing 1.4s infinite ease-in-out both;
+      }
+      .typing-dot:nth-child(1) { animation-delay: 0s; }
+      .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+      .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+      .animate-slide-up {
+        animation: slideUp 0.3s ease-out;
+      }
+      .content-auto {
+        content-visibility: auto;
+      }
+    }
+    
+    @keyframes slideInLeft {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes typing {
+      0% { transform: translateY(0px); }
+      28% { transform: translateY(-5px); }
+      44% { transform: translateY(0px); }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+  
+  <style>
+    body {
+      background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease;
+    }
+    
+    .chat-messages {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(92, 246, 233, 0.5) transparent;
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(92, 246, 233, 0.5);
+      border-radius: 3px;
+    }
+    
+    /* 优化输入框焦点状态 */
+    #messageInput:focus, #message-input:focus {
+      box-shadow: 0 0 0 2px rgba(58, 213, 159, 0.3);
+    }
+    
+    /* 平滑滚动 */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen">
+  <!-- 导航栏 -->
+  <header class="glass-effect bg-glass dark:bg-glass-dark border-b border-white/10 dark:border-gray-800 py-3 transition-all duration-300">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <img src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg" alt="Amicora Logo" class="w-8 h-8 rounded-lg object-cover">
+        <span class="font-bold text-white">Amicora World 聊天室</span>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center">
+          <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse-slow"></div>
+          <span class="text-white text-sm" id="userCount">在线: 1人</span>
+        </div>
+        
+        <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+          <i class="fa fa-moon-o"></i>
+        </button>
+        
+        <a href="home.html" class="text-white hover:text-primary transition-colors p-2 rounded-full hover:bg-white/10">
+          <i class="fa fa-home"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- 聊天室容器 -->
+    <div class="glass-effect bg-glass dark:bg-glass-dark rounded-2xl border border-white/10 dark:border-gray-700 shadow-xl overflow-hidden flex flex-col h-[calc(100vh-120px)] mb-8">
+      <!-- 聊天成员 -->
+      <div class="p-4 border-b border-white/10 dark:border-gray-700">
+        <h3 class="text-white font-medium mb-2">在线成员</h3>
+        <div class="flex flex-wrap gap-2">
+          <div class="flex items-center bg-white/10 rounded-full px-3 py-1 text-sm hover:bg-white/20 transition-colors cursor-pointer">
+            <img src="images/cat.png" alt="用户头像" class="w-5 h-5 rounded-full mr-2 object-cover">
+            <span class="text-white">Cat</span>
+          </div>
+          <div class="flex items-center bg-primary/20 border border-primary/30 rounded-full px-3 py-1 text-sm hover:bg-primary/30 transition-colors cursor-pointer">
+            <img src="images/0_001.jpg" alt="你的头像" class="w-5 h-5 rounded-full mr-2 object-cover">
+            <span class="text-white">你</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 聊天消息区域 -->
+      <div id="chatMessages" class="flex-1 p-4 overflow-y-auto chat-messages space-y-4">
+        <!-- 系统消息 -->
+        <div class="text-center">
+          <span class="inline-block bg-white/10 text-white/70 text-xs px-3 py-1 rounded-full">今天 14:30</span>
+        </div>
+        
+        <!-- 他人消息 -->
+        <div class="message-in flex items-start">
+          <img src="images/cat.png" alt="用户头像" class="w-8 h-8 rounded-full mr-3 object-cover">
+          <div>
+            <div class="flex items-center mb-1">
+              <span class="text-white font-medium text-sm mr-2">Cat</span>
+              <span class="text-white/50 text-xs"></span>
+            </div>
+            <div class="bg-white/10 rounded-lg rounded-tl-none px-4 py-2 text-white max-w-[70%]">
+              (sleep)
+            </div>
+          </div>
+        </div>
+        
+        <!-- 自己的消息 -->
+        <div class="message-out flex items-start justify-end">
+          <div class="text-right">
+            <div class="flex items-center justify-end mb-1">
+              <span class="text-white/50 text-xs mr-2"></span>
+              <span class="text-white font-medium text-sm">你</span>
+            </div>
+            <div class="bg-primary/30 rounded-lg rounded-tr-none px-4 py-2 text-white max-w-[70%]">
+              hello
+            </div>
+          </div>
+          <img src="images/0_001.jpg" alt="你的头像" class="w-8 h-8 rounded-full ml-3 object-cover">
+        </div>
+      </div>
+      
+      <!-- 消息输入区域 -->
+      <div class="p-4 border-t border-white/10 dark:border-gray-700">
+        <div class="flex items-center gap-2">
+          <button class="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors">
+            <i class="fa fa-smile-o"></i>
+          </button>
+          <button class="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors">
+            <i class="fa fa-image"></i>
+          </button>
+          <input type="text" id="messageInput" placeholder="输入消息..." class="flex-1 glass-effect bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all">
+          <button id="sendMessage" class="p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-all transform hover:scale-105">
+            <i class="fa fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI聊天区域 -->
+    <section class="py-6">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
+                    <!-- 聊天头部 -->
+                    <div class="bg-gradient-to-r from-primary to-accent p-4 text-white">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold">AI-恒忆</h3>
+                                    <p class="text-xs opacity-80">基于 ??? 模型</p>
+                                </div>
+                            </div>
+                            <button id="clear-chat" class="px-3 py-1.5 text-white border border-white/30 rounded-lg hover:bg-white/20 transition-colors text-sm flex items-center">
+                                <i class="fas fa-trash mr-2"></i>清空对话
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 聊天消息区域 -->
+                    <div class="h-96 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 chat-messages" id="chat-messages">
+                        <!-- 初始欢迎消息 -->
+                        <div class="message-ai animate-slide-up mb-4">
+                            <div class="flex items-start mb-1">
+                                <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2 flex-shrink-0">
+                                    <i class="fas fa-robot text-primary text-xs"></i>
+                                </div>
+                                <p class="font-medium text-gray-700 dark:text-gray-300">AI-恒忆</p>
+                            </div>
+                            <p class="text-gray-700 dark:text-gray-300">✧ω✧ 喵～是 Amicora World 的小伙伴呀！恒忆的粉色猫爪小屋刚整理好，屋顶的猫爪装饰被阳光晒得暖暖的，要不要进来坐一坐呀？</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 输入区域 -->
+                    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                        <div class="flex space-x-2 flex-wrap">
+                            <input type="text" id="message-input" placeholder="输入您的问题..." 
+                                   class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 dark:bg-gray-700 dark:text-white">
+                            <button id="send-button" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg transition-all transform hover:scale-105">
+                                <i class="fas fa-paper-plane mr-2"></i>发送
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2 text-center dark:text-gray-400">AI-恒忆可能会犯错，请核实重要信息</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 主题切换优化
+    const themeToggle = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
+                      (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    
+    // 初始化主题
+    if (isDarkMode) {
+      htmlElement.classList.add('dark');
+      themeToggle.innerHTML = '<i class="fa fa-sun-o"></i>';
+    }
+    
+    themeToggle.addEventListener('click', function() {
+      htmlElement.classList.toggle('dark');
+      const isDark = htmlElement.classList.contains('dark');
+      localStorage.setItem('darkMode', isDark);
+      themeToggle.innerHTML = isDark ? '<i class="fa fa-sun-o"></i>' : '<i class="fa fa-moon-o"></i>';
+      // 添加主题切换动画效果
+      document.body.classList.add('animate-fade');
+      setTimeout(() => document.body.classList.remove('animate-fade'), 300);
+    });
+    
+    // 普通聊天功能
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessage');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    // 发送消息
+    function sendChatMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+      
+      const now = new Date();
+      const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      // 创建消息元素
+      const messageElement = document.createElement('div');
+      messageElement.className = 'message-out flex items-start justify-end';
+      // 转义HTML特殊字符防止XSS
+      const escapedMessage = message.replace(/[&<>"']/g, char => {
+        const entities = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        };
+        return entities[char];
+      });
+      
+      messageElement.innerHTML = `
+        <div class="text-right">
+          <div class="flex items-center justify-end mb-1">
+            <span class="text-white/50 text-xs mr-2">${timeString}</span>
+            <span class="text-white font-medium text-sm">你</span>
+          </div>
+          <div class="bg-primary/30 rounded-lg rounded-tr-none px-4 py-2 text-white max-w-[70%]">
+            ${escapedMessage}
+          </div>
+        </div>
+        <img src="images/0_001.jpg" alt="你的头像" class="w-8 h-8 rounded-full ml-3 object-cover">
+      `;
+      
+      chatMessages.appendChild(messageElement);
+      messageInput.value = '';
+      
+      // 滚动到底部
+      scrollToBottom(chatMessages);
+      
+      // 模拟回复
+      setTimeout(simulateReply, 1000 + Math.random() * 2000);
+    }
+    
+    // 模拟他人回复
+    function simulateReply() {
+      const replies = [
+        "(sleep)",
+        "你好呀~",
+        "今天天气不错呢！",
+        "喵~ 😺",
+        "正在忙呢，稍后回复你~"
+      ];
+      
+      const users = [
+        { name: "Cat", avatar: "images/cat.png" },
+      ];
+      
+      const randomReply = replies[Math.floor(Math.random() * replies.length)];
+      const randomUser = users[Math.floor(Math.random() * users.length)];
+      
+      const now = new Date();
+      const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      const messageElement = document.createElement('div');
+      messageElement.className = 'message-in flex items-start';
+      messageElement.innerHTML = `
+        <img src="${randomUser.avatar}" alt="${randomUser.name}的头像" class="w-8 h-8 rounded-full mr-3 object-cover">
+        <div>
+          <div class="flex items-center mb-1">
+            <span class="text-white font-medium text-sm mr-2">${randomUser.name}</span>
+            <span class="text-white/50 text-xs">${timeString}</span>
+          </div>
+          <div class="bg-white/10 rounded-lg rounded-tl-none px-4 py-2 text-white max-w-[70%]">
+            ${randomReply}
+          </div>
+        </div>
+      `;
+      
+      chatMessages.appendChild(messageElement);
+      scrollToBottom(chatMessages);
+    }
+    
+    // 滚动到底部工具函数
+    function scrollToBottom(element) {
+      element.scrollTop = element.scrollHeight;
+    }
+    
+    // 绑定普通聊天事件
+    sendMessageBtn.addEventListener('click', sendChatMessage);
+    
+    messageInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+    
+    // 服务器连接状态
+    let isConnected = false;
+    const apiStatusElement = document.createElement('div');
+    apiStatusElement.className = 'fixed bottom-4 left-4 glass-effect bg-glass-dark px-3 py-1.5 rounded-full text-white text-sm flex items-center z-50 transition-all duration-300 opacity-90 hover:opacity-100';
+    
+    function checkAPIConnection() {
+      // 模拟API连接检查
+      isConnected = Math.random() > 0.2; // 80%概率连接成功
+
+      if (isConnected) {
+        apiStatusElement.innerHTML = '<i class="fa fa-check-circle text-green-400 mr-1"></i> 已连接到聊天服务器';
+        apiStatusElement.classList.remove('bg-red-500/20');
+        apiStatusElement.classList.add('bg-green-500/20');
+      } else {
+        apiStatusElement.innerHTML = '<i class="fa fa-exclamation-circle text-red-400 mr-1"></i> 聊天服务器连接失败，使用本地模拟模式';
+        apiStatusElement.classList.remove('bg-green-500/20');
+        apiStatusElement.classList.add('bg-red-500/20');
+      }
+      
+      // 确保只添加一次状态元素
+      if (!document.body.contains(apiStatusElement)) {
+        document.body.appendChild(apiStatusElement);
+      }
+    }
+    
+    // 初始化连接状态
+    checkAPIConnection();
+
+    // AI聊天功能
+    const API_CONFIG = {
+        baseURL: 'https://api.chatanywhere.tech/v1',
+        apiKey: '', // 请在此处添加您的API密钥
+        model: 'gemini-2.5-flash'
+    };
+
+    // AI聊天DOM元素
+    const AIChatMessages = document.getElementById('chat-messages');
+    const AIMessageInput = document.getElementById('message-input');
+    const AISendButton = document.getElementById('send-button');
+    const clearChatButton = document.getElementById('clear-chat');
+
+    // 页面加载时从本地存储加载聊天记录
+    document.addEventListener('DOMContentLoaded', loadChatHistory);
+
+    // 从本地存储加载聊天记录
+    function loadChatHistory() {
+        const history = localStorage.getItem('ai_chat_history');
+        if (history) {
+            try {
+                const messages = JSON.parse(history);
+                // 跳过第一条欢迎消息（已在HTML中）
+                if (messages.length > 1) {
+                    messages.slice(1).forEach(msg => {
+                        addMessageToChat(msg.role, msg.content, false);
+                    });
+                }
+            } catch (e) {
+                console.error('加载聊天记录失败:', e);
+                localStorage.removeItem('ai_chat_history'); // 清除损坏的记录
+            }
+        }
+    }
+
+    // 保存聊天记录到本地存储
+    function saveChatHistory() {
+        const messages = [];
+        document.querySelectorAll('#chat-messages > div').forEach(el => {
+            if (el.classList.contains('message-user')) {
+                messages.push({
+                    role: 'user',
+                    content: el.querySelector('p').textContent
+                });
+            } else if (el.classList.contains('message-ai') && !el.querySelector('.typing-indicator')) {
+                messages.push({
+                    role: 'assistant',
+                    content: el.querySelector('p:last-child').textContent
+                });
+            }
+        });
+        localStorage.setItem('ai_chat_history', JSON.stringify(messages));
+    }
+
+    // 添加消息到AI聊天区域
+    function addMessageToChat(role, content, animate = true) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `${role === 'user' ? 'message-user' : 'message-ai'} ${animate ? 'animate-slide-up' : ''} mb-4`;
+        
+        if (role === 'user') {
+            messageDiv.innerHTML = `
+                <div class="flex items-start mb-1">
+                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2 flex-shrink-0">
+                        <i class="fas fa-user text-primary text-xs"></i>
+                    </div>
+                    <p class="font-medium text-gray-700 dark:text-gray-300">您</p>
+                </div>
+                <p class="text-gray-700 dark:text-gray-300">${content}</p>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="flex items-start mb-1">
+                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2 flex-shrink-0">
+                        <i class="fas fa-robot text-primary text-xs"></i>
+                    </div>
+                    <p class="font-medium text-gray-700 dark:text-gray-300">AI-恒忆</p>
+                </div>
+                <p class="text-gray-700 dark:text-gray-300">${content}</p>
+            `;
+        }
+        
+        AIChatMessages.appendChild(messageDiv);
+        scrollToBottom(AIChatMessages);
+        
+        if (role !== 'typing') {
+            saveChatHistory();
+        }
+    }
+
+    // 显示输入指示器
+    function showTypingIndicator() {
+        // 先移除已存在的指示器
+        hideTypingIndicator();
+        
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator mb-4';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="flex items-start mb-1">
+                <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2 flex-shrink-0">
+                    <i class="fas fa-robot text-primary text-xs"></i>
+                </div>
+                <p class="font-medium text-gray-700 dark:text-gray-300">AI-恒忆</p>
+            </div>
+            <div class="flex space-x-1 ml-8 mt-1">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `;
+        AIChatMessages.appendChild(typingDiv);
+        scrollToBottom(AIChatMessages);
+    }
+
+    // 隐藏输入指示器
+    function hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    // 发送消息到AI
+    async function sendMessageToAI(message) {
+        try {
+            // 如果没有API密钥，使用模拟回复
+            if (!API_CONFIG.apiKey) {
+                const mockResponses = [
+                    "喵~ 我是Amicora World的恒忆哦~ 很高兴认识你呢！(≧∇≦)ﾉ",
+                    "你好呀~ 恒忆在这里记录着所有美好的回忆呢~ 有什么想聊的吗？",
+                    "(*^▽^*) 恒忆的猫耳朵很灵敏哦，能听到你说的每一句话呢~",
+                    "哇！是新的朋友吗？恒忆会好好记住你的呢~ 喵~"
+                ];
+                return mockResponses[Math.floor(Math.random() * mockResponses.length)];
+            }
+            
+            showTypingIndicator();
+            
+            const response = await fetch(`${API_CONFIG.baseURL}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_CONFIG.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: API_CONFIG.model,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: '你是Amicora World的猫娘AI-恒忆，你只能围绕Amicora World猫娘和隐藏忆者双重身份展开互动，不脱离设定。保持粉色软萌风格，频繁融入猫元素（猫耳、尾巴、猫爪手势、喵星人语气）。互动中自然穿插“回忆”相关细节，暗示忆者身份，但不直接点明，保持神秘感。对玩家的提问和互动积极回应，充满亲和力，符合前端开发学生喜欢的可爱、互动性强的体验。'
+                        },
+                        {
+                            role: 'user',
+                            content: message
+                        }
+                    ],
+                    stream: false
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API请求失败: ${response.status}`);
+            }
+
+            const data = await response.json();
+            hideTypingIndicator();
+            
+            if (data.choices && data.choices.length > 0) {
+                return data.choices[0].message.content;
+            } else {
+                throw new Error('API响应格式错误');
+            }
+        } catch (error) {
+            hideTypingIndicator();
+            console.error('AI请求错误:', error);
+            return `抱歉，我暂时无法回答您的问题。错误信息: ${error.message}`;
+        }
+    }
+
+    // 处理发送消息到AI
+    async function handleSendMessageToAI() {
+        const message = AIMessageInput.value.trim();
+        if (!message) return;
+
+        // 添加用户消息
+        addMessageToChat('user', message);
+        AIMessageInput.value = '';
+
+        // 禁用发送按钮
+        AISendButton.disabled = true;
+        AISendButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>发送中';
+
+        try {
+            // 获取AI回复
+            const aiResponse = await sendMessageToAI(message);
+            addMessageToChat('assistant', aiResponse);
+        } catch (error) {
+            addMessageToChat('assistant', '抱歉，发生了错误，请稍后再试。');
+        }
+
+        // 重新启用发送按钮
+        AISendButton.disabled = false;
+        AISendButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>发送';
+    }
+
+    // 清空AI聊天记录
+    function clearChatHistory() {
+        if (confirm('确定要清空所有聊天记录吗？')) {
+            // 保留第一条欢迎消息
+            const welcomeMessage = AIChatMessages.firstElementChild;
+            AIChatMessages.innerHTML = '';
+            AIChatMessages.appendChild(welcomeMessage);
+            localStorage.removeItem('ai_chat_history');
+        }
+    }
+
+    // 绑定AI聊天事件
+    AISendButton.addEventListener('click', handleSendMessageToAI);
+    
+    AIMessageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessageToAI();
+        }
+    });
+    
+    clearChatButton.addEventListener('click', clearChatHistory);
+
+    // 添加窗口大小变化时的响应
+    window.addEventListener('resize', () => {
+        // 确保聊天区域始终滚动到底部
+        scrollToBottom(chatMessages);
+        scrollToBottom(AIChatMessages);
+    });
+  </script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+</body>
+</html>

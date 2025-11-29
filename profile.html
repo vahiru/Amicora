@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人主页 - Amicora World</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 引入home.html的核心样式 */
+        .glass-effect {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .tooltip {
+            position: relative;
+        }
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+        }
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 页面基础样式 */
+        body {
+            background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            transition: background-image 1s ease-in-out, background-color 0.3s ease;
+            overflow-x: hidden;
+            color: #fff;
+        }
+
+        /* 导航栏样式 */
+        header {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 主内容区卡片样式 */
+        .content-card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        /* 按钮样式统一 */
+        button, .btn {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 6px 12px;
+        }
+        button:hover, .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* 个人资料头部 */
+        .profile-header {
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 2rem 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 兴趣标签 */
+        .interest-tag {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 4px 12px;
+            margin: 0 4px 8px 0;
+            display: inline-block;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="dark:bg-gray-900">
+    <!-- 导航栏 - 与home.html保持一致 -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <nav class="glass-effect bg-glass dark:bg-glass-dark border-b border-white/10 dark:border-gray-800">
+            <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                <!-- Logo和名称 -->
+                <div class="flex items-center space-x-2">
+                    <img 
+                        src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg"  
+                        alt="Amicora Logo" 
+                        class="w-10 h-10 rounded-lg object-contain"  
+                    />
+                    <span class="text-xl font-bold text-white text-shadow">Amicora World</span>
+                </div>
+                
+                <!-- 导航链接 - 桌面端 -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="home.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="返回首页">
+                        首页
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="home.html#about" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="服务器各类信息或帮助">
+                        关于
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="home.html#community" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="玩家社区">
+                        玩家社区
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="home.html#news" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="文章与新闻">
+                        文章与新闻
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="profile.html" class="text-primary transition-colors py-2 tooltip relative" data-tooltip="个人主页">
+                        个人主页
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary transition-all duration-300"></span>
+                    </a>
+                    <a href="chat.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="玩家聊天室">
+                        聊天室
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                </div>
+                
+                <!-- 功能按钮区 -->
+                <div class="flex items-center space-x-3">
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" data-tooltip="切换主题">
+                        <i class="fa fa-moon-o"></i>
+                    </button>
+                    <button id="musicToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" data-tooltip="切换背景音乐">
+                        <i class="fa fa-music"></i>
+                    </button>
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button id="mobileMenuBtn" class="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 移动端菜单 -->
+            <div id="mobileMenu" class="md:hidden hidden glass-effect bg-glass/90 dark:bg-glass-dark/90 border-t border-white/10 transform transition-all duration-300 ease-in-out">
+                <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                    <a href="home.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">首页</a>
+                    <a href="home.html#about" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">关于</a>
+                    <a href="home.html#community" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">玩家社区</a>
+                    <a href="home.html#news" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">文章与新闻</a>
+                    <a href="profile.html" class="text-primary transition-colors py-2 px-3 rounded-lg bg-white/10">个人主页</a>
+                    <a href="chat.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">聊天室</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 pt-28 pb-16">
+        <!-- 个人资料头部 -->
+        <section class="profile-header glass-effect bg-glass dark:bg-glass-dark p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl mb-10">
+            <div class="flex flex-col md:flex-row items-center">
+                <!-- 头像区域 -->
+                <div class="mb-6 md:mb-0 md:mr-6 flex flex-col items-center md:items-start">
+                    <div id="avatarContainer" class="w-32 h-32 rounded-full overflow-hidden shadow-lg transition-transform hover:scale-105 border-4 border-white/20">
+                        <img id="avatar" src="images/0_001.jpg" alt="头像" class="w-full h-full object-cover">
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" class="hidden mt-2">
+                    <button id="changeAvatarBtn" class="mt-2 text-sm glass-effect bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-colors">
+                        <i class="fa fa-camera mr-1"></i> 更换头像
+                    </button>
+                </div>
+
+                <!-- 个人信息 -->
+                <div class="text-center md:text-left flex-1">
+                    <h1 id="username" class="text-3xl font-bold editable mb-2 text-white text-shadow">用户名</h1>
+                    <p id="bio" class="text-white/80 editable mb-4 max-w-2xl">个人简介</p>
+                    <div class="flex flex-wrap gap-4 mb-4 justify-center md:justify-start">
+                        <a id="website" href="#" class="text-white/80 hover:text-white editable flex items-center">
+                            <i class="fa fa-link mr-1"></i> 个人网站
+                        </a>
+                    </div>
+
+                    <!-- 用户元数据 -->
+                    <div class="user-meta flex flex-wrap gap-6 text-white/90 justify-center md:justify-start">
+                        <div class="meta-item flex items-center">
+                            <i class="fa fa-calendar mr-2"></i>
+                            <span>注册于 <span id="joinDate">2025</span></span>
+                        </div>
+                        <div class="meta-item flex items-center">
+                            <i class="fa fa-file-text mr-2"></i>
+                            <span><span id="articleCount">0</span> 篇文章</span>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="mt-6 flex gap-3 justify-center md:justify-start">
+                        <button id="editProfileBtn" class="glass-effect bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                            <i class="fa fa-edit mr-1"></i> 编辑资料
+                        </button>
+                        <button id="saveProfileBtn" class="hidden bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/80 transition-colors flex items-center justify-center">
+                            <i class="fa fa-save mr-1"></i> 保存修改
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 主要内容区 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- 文章列表 -->
+            <div class="md:col-span-2">
+                <div class="content-card p-6 shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 border-b border-white/10 pb-2 flex items-center">
+                        <i class="fas fa-file-alt mr-2 text-primary"></i>我的文章
+                    </h2>
+                    <div id="myArticles" class="space-y-6">
+                        <!-- 文章列表将通过JS动态生成 -->
+                        <div class="content-card p-4 card-hover">
+                            <h3 class="text-xl font-semibold mb-2">暂无文章</h3>
+                            <p class="text-white/70 text-sm">点击下方按钮发布您的第一篇文章</p>
+                        </div>
+                    </div>
+                    <button id="addArticleBtn" class="mt-6 w-full py-2 border border-primary text-primary hover:bg-primary hover:text-white rounded-lg transition-colors">
+                        <i class="fa fa-plus mr-1"></i> 发布新文章
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 个人信息侧边栏 -->
+            <div class="space-y-6">
+                <!-- 个人信息卡片 -->
+                <div class="content-card p-6 shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 border-b border-white/10 pb-2 flex items-center">
+                        <i class="fas fa-user mr-2 text-primary"></i>个人信息
+                    </h2>
+                    
+                    <!-- 兴趣爱好 -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold mb-3 flex items-center">
+                            <i class="fas fa-heart text-primary mr-2"></i>兴趣爱好
+                        </h3>
+                        <div id="interests" class="flex flex-wrap gap-2 editable mb-3">
+                            <span class="px-3 py-1 rounded-full text-sm interest-tag">Minecraft</span>
+                        </div>
+                        <input type="text" id="newInterest" placeholder="添加兴趣" class="mt-2 w-full px-3 py-2 glass-effect bg-white/10 border border-white/20 rounded-lg hidden focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button id="addInterestBtn" class="mt-2 text-primary text-sm hidden hover:underline">
+                            <i class="fa fa-plus mr-1"></i> 添加
+                        </button>
+                    </div>
+                    
+                    <!-- 注册时间 -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold mb-2 flex items-center">
+                            <i class="fas fa-calendar-alt text-primary mr-2"></i>注册时间
+                        </h3>
+                        <p id="registerDate">2025-07-07</p>
+                    </div>
+                    
+                    <!-- 文章统计 -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold mb-2 flex items-center">
+                            <i class="fas fa-chart-line text-primary mr-2"></i>文章统计
+                        </h3>
+                        <p id="articleCountDisplay">0 篇文章</p>
+                    </div>
+
+                    <!-- 管理员区域 -->
+                    <div id="adminSection" class="mt-6 pt-6 border-t border-white/10 hidden">
+                        <h3 class="font-semibold mb-3 flex items-center">
+                            <i class="fas fa-shield-alt text-primary mr-2"></i>管理员验证
+                        </h3>
+                        <div class="flex gap-2">
+                            <input type="password" id="adminKeyInput" placeholder="输入管理员密钥" class="flex-1 px-3 py-2 glass-effect bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <button id="verifyAdminBtn" class="bg-primary text-white px-3 py-2 rounded-lg hover:bg-primary/80 transition-colors">
+                                验证
+                            </button>
+                        </div>
+                        <p id="adminSuccessMsg" class="mt-2 text-primary hidden">
+                            <i class="fas fa-check-circle mr-1"></i>已验证为管理员
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 - 与home.html保持一致 -->
+    <footer class="py-6 mt-12 glass-effect bg-glass dark:bg-glass-dark border-t border-white/10">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-white/70">&copy; 2025 Amicora World. 保留所有权利。</p>
+        </div>
+    </footer>
+
+    <script src="js/profile.js"></script>
+    <!-- 引入home.html的通用脚本 -->
+    <script>
+        // 移动端菜单切换
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-bars')) {
+                icon.classList.replace('fa-bars', 'fa-times');
+            } else {
+                icon.classList.replace('fa-times', 'fa-bars');
+            }
+        });
+
+        // 主题切换功能
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark');
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-moon-o')) {
+                icon.classList.replace('fa-moon-o', 'fa-sun-o');
+            } else {
+                icon.classList.replace('fa-sun-o', 'fa-moon-o');
+            }
+        });
+
+        // 背景音乐控制
+        const bgMusic = new Audio('mp3/暮春.mp3');
+        bgMusic.loop = true;
+        const musicToggle = document.getElementById('musicToggle');
+        musicToggle.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (bgMusic.paused) {
+                bgMusic.play();
+                icon.classList.replace('fa-music', 'fa-pause');
+            } else {
+                bgMusic.pause();
+                icon.classList.replace('fa-pause', 'fa-music');
+            }
+        });
+    </script>
+</body>
+</html>

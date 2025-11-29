@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - Amicora World</title>
+    <!-- 引入外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3ad59fcd', 
+                        secondary: '#EC4899', // 辅助色
+                        accent: '#10B981', // 强调色
+                        glass: 'rgba(255, 255, 255, 0.15)', // 玻璃态背景
+                        'glass-dark': 'rgba(17, 24, 39, 0.85)', // 深色模式玻璃态
+                        'glass-hover': 'rgba(255, 255, 255, 0.25)', // 玻璃态悬停背景
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.6s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                },
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .glass-effect {
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            }
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+            }
+        }
+    </style>
+    
+    <style>
+        /* 全局样式 */
+        body {
+            transition: background-image 1s ease-in-out, background-color 0.3s ease;
+            overflow-x: hidden;
+            background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        /* 通知提示样式 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: rgb(255, 255, 255);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 100;
+            animation: fadeIn 0.2s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center p-4">
+    <!-- 导航栏 -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent">
+        <nav class="glass-effect bg-glass dark:bg-glass-dark border-b border-white/10 dark:border-gray-800">
+            <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                <!-- Logo 和名称 -->
+                <div class="flex items-center space-x-2">
+                    <img 
+                        src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg"  
+                        alt="Amicora Logo" 
+                        class="w-10 h-10 rounded-lg object-contain"  
+                    />
+                    <span class="text-xl font-bold text-white text-shadow">
+                        Amicora World
+                    </span>
+                </div>
+                
+                <!-- 导航链接 - 桌面端 -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="home.html" class="text-white hover:text-primary transition-colors py-2 relative">
+                        首页
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="home.html#about" class="text-white hover:text-primary transition-colors py-2 relative">
+                        关于
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="home.html#community" class="text-white hover:text-primary transition-colors py-2 relative">
+                        玩家社区
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                </div>
+                
+                <!-- 移动端菜单按钮 -->
+                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- 移动端菜单 -->
+            <div id="mobileMenu" class="md:hidden hidden glass-effect bg-glass/90 dark:bg-glass-dark/90 border-t border-white/10 transform transition-all duration-300 ease-in-out">
+                <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                    <a href="home.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">首页</a>
+                    <a href="home.html#about" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">关于</a>
+                    <a href="home.html#community" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">玩家社区</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 登录卡片 -->
+    <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-8 md:p-10 border border-white/10 dark:border-gray-700 shadow-xl w-full max-w-md mx-auto mt-16 animate-slide-up card-hover">
+        <div class="logo text-center mb-8">
+            <img 
+                src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg"  
+                alt="Amicora Logo" 
+                class="w-16 h-16 rounded-lg object-contain mx-auto mb-4"  
+            />
+            <h1 class="text-2xl font-bold text-white text-shadow">Amicora World</h1>
+            <p class="text-gray-300 mt-2">登录到您的账户</p>
+        </div>
+        
+        <form id="loginForm" class="space-y-6">
+            <div class="form-group">
+                <label for="username" class="block text-gray-200 mb-2">用户名</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <i class="fa fa-user"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        required
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 dark:bg-gray-800/30 border border-white/10 dark:border-gray-700 text-white focus:outline-none focus:border-primary transition-colors"
+                        placeholder="请输入用户名"
+                    >
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="block text-gray-200 mb-2">密码</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <i class="fa fa-lock"></i>
+                    </span>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        required
+                        class="w-full pl-10 pr-10 py-3 rounded-xl bg-white/5 dark:bg-gray-800/30 border border-white/10 dark:border-gray-700 text-white focus:outline-none focus:border-primary transition-colors"
+                        placeholder="请输入密码"
+                    >
+                    <button type="button" id="togglePassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <button 
+                type="submit" 
+                class="w-full py-3 bg-primary hover:bg-primary/80 text-white font-bold rounded-xl transition-colors flex items-center justify-center"
+            >
+                <i class="fa fa-sign-in mr-2"></i> 登录
+            </button>
+            
+            <div class="links flex justify-between items-center text-sm mt-4">
+                <a href="#" class="text-gray-300 hover:text-primary transition-colors">忘记密码?</a>
+                <a href="register.html" class="text-gray-300 hover:text-primary transition-colors">注册账号</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 移动端菜单控制
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            menuBtn.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-bars')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+            
+            // 密码显示切换
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // 切换图标
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-eye')) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+            
+            // 登录表单提交
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                // 这里添加登录逻辑
+                showNotification(`登录成功，欢迎回来 ${username}`);
+                
+                // 模拟登录后跳转
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 1000);
+            });
+            
+            // 通知提示功能
+            window.showNotification = function(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification bg-primary px-4 py-2 rounded-lg shadow-lg z-50';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 2000);
+            };
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>互动菜单 - Amicora World</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind 配置（使用 home.html 的配色方案） -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3ad59fcd', 
+            secondary: '#EC4899', // 辅助色
+            accent: '#10B981', // 强调色
+            glass: 'rgba(255, 255, 255, 0.15)', // 玻璃态背景
+            'glass-dark': 'rgba(17, 24, 39, 0.85)', // 深色模式玻璃态
+            'glass-hover': 'rgba(255, 255, 255, 0.25)', // 玻璃态悬停背景
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.6s ease-out forwards',
+            'slide-up': 'slideUp 0.5s ease-out forwards',
+          },
+           keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            }
+          }
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类（复用 home.html 的工具类） -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      }
+      .text-gradient {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+      .bg-blur {
+        backdrop-filter: blur(8px);
+      }
+    }
+  </style>
+  
+  <style>
+    /* 全局样式统一 */
+    body {
+      transition: background-image 1s ease-in-out, background-color 0.3s ease;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    
+    /* 背景图样式（复用 home.html 的背景） */
+    .bg-anime {
+      background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+    
+    .bg-pure {
+      background-image: none;
+    }
+    
+    /* 滚动条美化（复用 home.html 样式） */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(92, 246, 233, 0.5);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgb(92, 246, 128);
+    }
+
+    /* 动画延迟类 */
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+
+    /* 工具提示样式（复用） */
+    .tooltip {
+      position: relative;
+    }
+
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(17, 24, 39, 0.9);
+      color: rgb(255, 255, 255);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 100;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    /* 自定义动画 */
+    .feedback-item {
+      animation: fadeIn 0.3s ease-out forwards, slideUp 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    
+    .loader {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(58, 213, 159, 0.3);
+      border-radius: 50%;
+      border-top-color: #3ad59fcd;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .cat-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 bg-anime">
+  <!-- 音频播放器 (与 home.html 保持一致) -->
+  <audio id="bgMusic" loop>
+    <source src="mp3/暮春.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 导航栏（复用 home.html 导航样式） -->
+  <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <nav class="glass-effect bg-glass dark:bg-glass-dark border-b border-white/10 dark:border-gray-800">
+      <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <!-- Logo 和名称（与 home.html 一致） -->
+        <div class="flex items-center space-x-2">
+          <img 
+              src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg"  
+              alt="Amicora Logo" 
+              class="w-10 h-10 rounded-lg object-contain"  
+          />
+          <span class="text-xl font-bold text-white text-shadow">
+              Amicora World
+          </span>
+        </div>
+        
+        <!-- 导航链接 - 桌面端 -->
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="index.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="返回首页">
+            首页
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="home.html#about" class="text-white hover:text-primary transition-colors tooltip relative" data-tooltip="服务器各类信息或帮助">
+            关于
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="home.html#news" class="text-white hover:text-primary transition-colors tooltip relative" data-tooltip="文章与公告">
+            文章与新闻
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="home.html#friends" class="text-white hover:text-primary transition-colors tooltip relative" data-tooltip="友情服务器">
+            友情服务器
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="hdcd.html" class="text-primary border-b-2 border-primary pb-2 font-medium tooltip relative" data-tooltip="互动功能菜单">
+            互动菜单
+          </a>
+          <a href="profile.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="个人主页">
+            个人主页
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+        </div>
+        
+        <!-- 功能按钮区 -->
+        <div class="flex items-center space-x-3">
+          <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white tooltip" data-tooltip="切换主题">
+            <i class="fa fa-moon-o"></i>
+          </button>
+          <button id="bgToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white tooltip" data-tooltip="切换背景">
+            <i class="fa fa-image"></i>
+          </button>
+          <button id="musicToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white tooltip" data-tooltip="切换音乐">
+            <i class="fa fa-music"></i>
+          </button>
+          
+          <!-- 移动端菜单按钮 -->
+          <button id="mobileMenuBtn" class="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-bars"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 移动端菜单（复用 home.html 样式） -->
+      <div id="mobileMenu" class="md:hidden hidden glass-effect bg-glass/90 dark:bg-glass-dark/90 border-t border-white/10 transform transition-all duration-300 ease-in-out">
+        <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+          <a href="index.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">首页</a>
+          <a href="home.html#about" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">关于</a>
+          <a href="home.html#news" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">文章与新闻</a>
+          <a href="home.html#friends" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">友情服务器</a>
+          <a href="hdcd.html" class="text-primary bg-white/10 py-2 px-3 rounded-lg font-medium">互动菜单</a>
+          <a href="profile.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">个人主页</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 pt-24 pb-16">
+    <div class="max-w-4xl mx-auto">
+      <!-- 页面标题 -->
+      <div class="text-center mb-10 animate-fade-in">
+        <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-white text-shadow mb-4">互动功能菜单</h1>
+        <p class="text-white/80 max-w-2xl mx-auto">探索各种有趣的互动功能，与服务器进行更多互动</p>
+      </div>
+      
+      <!-- 功能按钮区（玻璃态风格） -->
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-xl p-6 mb-10 border border-white/10 shadow-lg animate-slide-up delay-100">
+        <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
+          <i class="fa fa-magic text-primary mr-2"></i>快速功能
+        </h2>
+        <div class="flex flex-wrap gap-3 justify-center">
+          <button id="catBtn" class="px-4 py-2 bg-secondary text-white rounded-full hover:bg-secondary/90 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center pulse-effect hover-lift card-hover">
+            <i class="fa fa-paw mr-2"></i>
+            <span>给猫猫吃小鱼干喵～</span>
+          </button>
+          
+          <button id="pingBtn" class="px-4 py-2 bg-accent text-white rounded-full hover:bg-accent/90 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center pulse-effect hover-lift card-hover">
+            <i class="fa fa-exchange mr-2"></i>
+            <span>ping~pong~</span>
+          </button>
+          
+          <button id="bgMusicBtn" class="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center pulse-effect hover-lift card-hover">
+            <i class="fa fa-volume-up mr-2"></i>
+            <span>切换背景音乐</span>
+          </button>
+          
+          
+        </div>
+      </div>
+      
+      <!-- 功能区块（玻璃态卡片） -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- 左侧功能区 -->
+        <div class="glass-effect bg-glass dark:bg-glass-dark rounded-xl p-6 border border-white/10 shadow-lg animate-slide-up delay-200 card-hover">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+            <i class="fa fa-gamepad text-primary mr-2"></i>互动功能
+          </h3>
+          <ul class="space-y-3">
+            <li>
+              <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-200 flex items-center text-white">
+                <i class="fa fa-gift w-6 text-primary"></i>
+                <span>每日签到</span>
+              </button>
+            </li>
+            <li>
+              <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-200 flex items-center text-white">
+                <i class="fa fa-bar-chart w-6 text-primary"></i>
+                <span>查看服务器状态</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- 右侧设置区 -->
+        <div class="glass-effect bg-glass dark:bg-glass-dark rounded-xl p-6 border border-white/10 shadow-lg animate-slide-up delay-300 card-hover">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+            <i class="fa fa-cog text-primary mr-2"></i>偏好设置
+          </h3>
+          <ul class="space-y-3">
+            <li>
+              <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-200 flex items-center text-white">
+                <i class="fa fa-paint-brush w-6 text-primary"></i>
+                <span>界面风格设置</span>
+              </button>
+            </li>
+            <li>
+              <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-200 flex items-center text-white">
+                <i class="fa fa-language w-6 text-primary"></i>
+                <span>语言切换</span>
+              </button>
+            </li>
+            <li>
+              
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- 反馈区域 -->
+      <div class="mt-10 glass-effect bg-glass dark:bg-glass-dark rounded-xl p-6 border border-white/10 shadow-lg animate-fade-in delay-300">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+          <i class="fa fa-comments text-primary mr-2"></i>操作反馈
+        </h3>
+        <div id="feedbackContainer" class="min-h-[100px] text-white text-sm space-y-2">
+          <p class="text-white/60 italic">等待操作...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 互动猫咪元素（复用 home.html 风格） -->
+  <div id="cat-container" class="fixed bottom-6 right-6 z-40 cursor-pointer">
+    <img src="images/cat.png" alt="互动猫咪" class="w-20 h-20 rounded-full object-cover shadow-lg cat-animation" />
+  </div>
+
+  <script>
+    // 移动端菜单切换
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // 主题切换功能
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const icon = themeToggle.querySelector('i');
+      if (html.classList.contains('dark')) {
+        icon.classList.remove('fa-moon-o');
+        icon.classList.add('fa-sun-o');
+      } else {
+        icon.classList.remove('fa-sun-o');
+        icon.classList.add('fa-moon-o');
+      }
+    });
+
+    // 背景切换功能
+    const bgToggle = document.getElementById('bgToggle');
+    const body = document.body;
+    
+    bgToggle.addEventListener('click', () => {
+      body.classList.toggle('bg-anime');
+      body.classList.toggle('bg-pure');
+    });
+
+    // 音乐控制功能
+    const musicToggle = document.getElementById('musicToggle');
+    const bgMusic = document.getElementById('bgMusic');
+    
+    musicToggle.addEventListener('click', () => {
+      if (bgMusic.paused) {
+        bgMusic.play().catch(e => console.log('音乐播放失败:', e));
+        musicToggle.querySelector('i').classList.remove('fa-music');
+        musicToggle.querySelector('i').classList.add('fa-pause');
+      } else {
+        bgMusic.pause();
+        musicToggle.querySelector('i').classList.remove('fa-pause');
+        musicToggle.querySelector('i').classList.add('fa-music');
+      }
+    });
+
+    // 功能按钮交互
+    const feedbackContainer = document.getElementById('feedbackContainer');
+    const catBtn = document.getElementById('catBtn');
+    const pingBtn = document.getElementById('pingBtn');
+    const bgMusicBtn = document.getElementById('bgMusicBtn');
+    
+
+    // 添加反馈消息
+    function addFeedback(message, type = 'info') {
+      const feedback = document.createElement('div');
+      feedback.className = `feedback-item p-2 rounded ${type === 'error' ? 'text-red-300' : 'text-primary'}`;
+      feedback.innerHTML = `<i class="fa ${type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>${message}`;
+      feedbackContainer.innerHTML = '';
+      feedbackContainer.appendChild(feedback);
+    }
+
+    catBtn.addEventListener('click', () => {
+      addFeedback('猫咪开心地吃掉了小鱼干～ 喵～');
+    });
+
+    pingBtn.addEventListener('click', () => {
+      addFeedback('服务器响应: Pong! 延迟约 45ms');
+    });
+
+    bgMusicBtn.addEventListener('click', () => {
+      musicToggle.click(); // 复用音乐切换功能
+      addFeedback(bgMusic.paused ? '背景音乐已暂停' : '背景音乐已播放');
+    });
+
+   
+
+    // 猫咪互动
+    const catContainer = document.getElementById('cat-container');
+    catContainer.addEventListener('click', () => {
+      addFeedback('猫咪蹭了蹭你的手～ 好舒服～');
+    });
+  </script>
+</body>
+</html>

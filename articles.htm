@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>所有文章 - Amicora World</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .article-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <header class="bg-primary text-white py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center">
+                <a href="home.html" class="text-2xl font-bold">Amicora World</a>
+                <nav>
+                    <a href="home.html" class="mr-4 hover:text-gray-200">首页</a>
+                    <a href="#" class="mr-4 hover:text-gray-200">文章</a>
+                    <a href="profile.html" class="hover:text-gray-200">个人主页</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">所有文章</h1>
+        
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <span id="articleCount" class="text-gray-600 dark:text-gray-400">0 篇文章</span>
+            </div>
+            <div>
+                <select id="sortBy" class="bg-white dark:bg-gray-800 border rounded-lg px-3 py-2">
+                    <option value="newest">最新发布</option>
+                    <option value="oldest">最早发布</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="articlesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 文章将通过JS动态加载 -->
+        </div>
+    </div>
+
+    <script>
+        // 加载所有文章
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否有登录用户
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // 获取所有用户的文章（这里简化处理，只获取当前用户的文章）
+            // 实际项目中可能需要从服务器获取所有公开文章
+            const allArticles = user.articles || [];
+            
+            // 显示文章数量
+            document.getElementById('articleCount').textContent = `${allArticles.length} 篇文章`;
+            
+            // 渲染文章列表
+            renderArticles(allArticles);
+            
+            // 排序功能
+            document.getElementById('sortBy').addEventListener('change', function() {
+                const sortedArticles = [...allArticles];
+                if (this.value === 'newest') {
+                    sortedArticles.sort((a, b) => b.id - a.id); // 按ID倒序（最新的在前）
+                } else {
+                    sortedArticles.sort((a, b) => a.id - b.id); // 按ID正序（最早的在前）
+                }
+                renderArticles(sortedArticles);
+            });
+        });
+        
+        // 渲染文章列表
+        function renderArticles(articles) {
+            const container = document.getElementById('articlesContainer');
+            container.innerHTML = '';
+            
+            if (articles.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fa fa-file-text-o text-5xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-500">还没有发布任何文章</p>
+                        <a href="home.html#news" class="mt-4 inline-block bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90">
+                            发布第一篇文章
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            articles.forEach(article => {
+                const articleCard = document.createElement('div');
+                articleCard.className = 'article-card bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden';
+                articleCard.innerHTML = `
+                    ${article.imageUrl ? `<img src="${article.imageUrl}" alt="${article.title}" class="w-full h-48 object-cover">` : ''}
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <i class="fa fa-user-o mr-1"></i> ${user.username}
+                            <span class="mx-2">•</span>
+                            <i class="fa fa-calendar-o mr-1"></i> ${article.date}
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">${article.title}</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">${article.excerpt}</p>
+                        <a href="article-detail.html?id=${article.id}" class="text-primary hover:text-primary/80 inline-flex items-center">
+                            阅读全文 <i class="fa fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                `;
+                container.appendChild(articleCard);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - Amicora World</title>
+    <!-- 外部资源引入 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Tailwind 配置 - 与home.html保持一致 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3ad59fcd', 
+                        secondary: '#EC4899',
+                        accent: '#10B981',
+                        glass: 'rgba(255, 255, 255, 0.15)',
+                        'glass-dark': 'rgba(17, 24, 39, 0.85)',
+                        'glass-hover': 'rgba(255, 255, 255, 0.25)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.6s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 - 复用home.html的样式定义 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .glass-effect {
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            }
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+            }
+        }
+    </style>
+    
+    <style>
+        /* 全局样式 - 与home.html保持一致 */
+        body {
+            transition: background-image 1s ease-in-out, background-color 0.3s ease;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        
+        .bg-anime {
+            background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        
+        .bg-pure {
+            background-image: none;
+        }
+        
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(92, 246, 233, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgb(92, 246, 128);
+        }
+        
+        /* 动画延迟类 */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        
+        /* 工具提示样式 */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(17, 24, 39, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 100;
+        }
+        
+        /* 密码强度样式 */
+        .password-strength {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .strength-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .strength-weak {
+            background-color: #ff6b6b;
+            width: 33%;
+        }
+        
+        .strength-medium {
+            background-color: #ffd166;
+            width: 66%;
+        }
+        
+        .strength-strong {
+            background-color: #4ecdc4;
+            width: 100%;
+        }
+        
+        /* 加载动画 */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading {
+            animation: spin 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 min-h-screen text-white bg-anime">
+    <!-- 导航栏 - 完全复用home.html的导航结构 -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <nav class="glass-effect bg-glass dark:bg-glass-dark border-b border-white/10 dark:border-gray-800">
+            <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                <!-- Logo 和名称 -->
+                <div class="flex items-center space-x-2">
+                    <img 
+                        src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg"  
+                        alt="Amicora Logo" 
+                        class="w-10 h-10 rounded-lg object-contain"  
+                    />
+                    <span class="text-xl font-bold text-white text-shadow">Amicora World</span>
+                </div>
+                
+                <!-- 桌面端导航链接 -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="home.html" class="text-white hover:text-primary transition-colors py-2 relative tooltip" data-tooltip="返回首页">
+                        首页
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="login.html" class="text-white hover:text-primary transition-colors py-2 relative tooltip" data-tooltip="登录账号">
+                        登录
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="home.html#friends" class="text-white hover:text-primary transition-colors py-2 relative tooltip" data-tooltip="友情服务器">
+                        友情服务器
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                    <a href="home.html#recommendations" class="text-white hover:text-primary transition-colors py-2 relative tooltip" data-tooltip="推荐站点">
+                        推荐站点
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+                    </a>
+                </div>
+                
+                <!-- 移动端菜单按钮 -->
+                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- 移动端菜单 -->
+            <div id="mobileMenu" class="md:hidden hidden glass-effect bg-glass/90 dark:bg-glass-dark/90 border-t border-white/10 transform transition-all duration-300 ease-in-out">
+                <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                    <a href="home.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">首页</a>
+                    <a href="login.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">登录</a>
+                    <a href="home.html#friends" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">友情服务器</a>
+                    <a href="home.html#recommendations" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">推荐站点</a>
+                    <a href="home.html#hdcd" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">互动菜单</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 pt-32 pb-16">
+        <!-- 注册卡片 - 使用home.html的玻璃态卡片样式 -->
+        <div class="max-w-md mx-auto">
+            <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 md:p-8 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-fade-in">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
+                        <i class="fa fa-user-plus text-primary text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">创建账号</h2>
+                    <p class="text-gray-300">加入Amicora World社区，开启我的世界之旅</p>
+                </div>
+                
+                <form id="registerForm">
+                    <!-- 用户名输入 -->
+                    <div class="mb-5">
+                        <label for="username" class="block text-sm font-medium text-gray-300 mb-1">用户名</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa fa-user"></i>
+                            </span>
+                            <input type="text" id="username" 
+                                   class="pl-10 w-full py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder-gray-400 transition-all"
+                                   placeholder="请输入用户名" 
+                                   required
+                                   minlength="3" 
+                                   maxlength="20"
+                                   pattern="^[a-zA-Z0-9_]{3,20}$">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400">3-20位字母、数字或下划线</p>
+                    </div>
+                    
+                    <!-- 密码输入 -->
+                    <div class="mb-5">
+                        <label for="password" class="block text-sm font-medium text-gray-300 mb-1">密码</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa fa-lock"></i>
+                            </span>
+                            <input type="password" id="password" 
+                                   class="pl-10 w-full py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder-gray-400 transition-all"
+                                   placeholder="请输入密码" 
+                                   required
+                                   minlength="6">
+                            <button type="button" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-primary transition-colors toggle-password">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 密码强度指示器 -->
+                        <div class="password-strength mt-2">
+                            <div class="strength-bar"></div>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400 strength-text">密码强度：未输入</p>
+                    </div>
+                    
+                    <!-- 确认密码 -->
+                    <div class="mb-6">
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-300 mb-1">确认密码</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa fa-lock"></i>
+                            </span>
+                            <input type="password" id="confirmPassword" 
+                                   class="pl-10 w-full py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder-gray-400 transition-all"
+                                   placeholder="请再次输入密码" 
+                                   required>
+                            <button type="button" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-primary transition-colors toggle-password">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="mt-1 text-xs text-red-400 hidden password-mismatch">两次输入的密码不一致</p>
+                    </div>
+                    
+                    <!-- 验证码 -->
+                    <div class="mb-6">
+                        <div class="g-recaptcha" data-sitekey="your_site_key"></div>
+                    </div>
+                    
+                    <!-- 注册按钮 -->
+                    <button type="submit" class="w-full py-3 bg-primary hover:bg-primary/80 text-white font-bold rounded-lg transition-colors flex items-center justify-center">
+                        <span>注册账号</span>
+                        <i class="fa fa-spinner loading ml-2 hidden"></i>
+                    </button>
+                    
+                    <!-- 已有账号 -->
+                    <div class="text-center text-gray-300 text-sm mt-6">
+                        已有账号? <a href="login.html" class="text-primary hover:text-secondary transition-colors">立即登录</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 - 复用home.html页脚样式 -->
+    <footer class="glass-effect bg-glass/50 dark:bg-glass-dark/50 border-t border-white/10 py-6">
+        <div class="container mx-auto px-4">
+            <div class="text-center text-gray-400 text-sm">
+                <p>© 2025 Amicora World 我的世界服务器. 保留所有权利.</p>
+                <p class="mt-1">我的世界是Mojang Studios的商标. 本服务器与Mojang无关.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 移动端菜单功能 - 复用home.html逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            menuBtn.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-bars')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+            
+            // 密码显示切换
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const input = this.parentElement.querySelector('input');
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+            
+            // 密码强度检测
+            const passwordInput = document.getElementById('password');
+            const strengthBar = document.querySelector('.strength-bar');
+            const strengthText = document.querySelector('.strength-text');
+            
+            passwordInput.addEventListener('input', function() {
+                const value = this.value;
+                let strength = 0;
+                
+                // 密码强度检测逻辑
+                if (value.length >= 6) strength++;
+                if (value.match(/[A-Z]/)) strength++;
+                if (value.match(/[0-9]/)) strength++;
+                if (value.match(/[^A-Za-z0-9]/)) strength++;
+                
+                // 更新强度指示器
+                strengthBar.className = 'strength-bar';
+                if (value.length > 0) {
+                    if (strength <= 1) {
+                        strengthBar.classList.add('strength-weak');
+                        strengthText.textContent = '密码强度：弱';
+                        strengthText.className = 'mt-1 text-xs text-red-400';
+                    } else if (strength === 2 || strength === 3) {
+                        strengthBar.classList.add('strength-medium');
+                        strengthText.textContent = '密码强度：中';
+                        strengthText.className = 'mt-1 text-xs text-yellow-400';
+                    } else {
+                        strengthBar.classList.add('strength-strong');
+                        strengthText.textContent = '密码强度：强';
+                        strengthText.className = 'mt-1 text-xs text-green-400';
+                    }
+                } else {
+                    strengthText.textContent = '密码强度：未输入';
+                    strengthText.className = 'mt-1 text-xs text-gray-400';
+                }
+                
+                // 检查密码一致性
+                checkPasswordMatch();
+            });
+            
+            // 确认密码验证
+            const confirmInput = document.getElementById('confirmPassword');
+            confirmInput.addEventListener('input', checkPasswordMatch);
+            
+            function checkPasswordMatch() {
+                const mismatchEl = document.querySelector('.password-mismatch');
+                if (confirmInput.value && passwordInput.value !== confirmInput.value) {
+                    mismatchEl.classList.remove('hidden');
+                    confirmInput.classList.add('border-red-500');
+                    confirmInput.classList.remove('border-white/20');
+                } else {
+                    mismatchEl.classList.add('hidden');
+                    confirmInput.classList.remove('border-red-500');
+                    confirmInput.classList.add('border-white/20');
+                }
+            }
+            
+            // 表单提交处理
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 检查密码是否一致
+                if (passwordInput.value !== confirmInput.value) {
+                    checkPasswordMatch();
+                    return;
+                }
+                
+                // 模拟注册过程
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const spinner = submitBtn.querySelector('.fa-spinner');
+                
+                submitBtn.disabled = true;
+                spinner.classList.remove('hidden');
+                
+                // 模拟API请求延迟
+                setTimeout(() => {
+                    alert('注册成功！请登录账号');
+                    window.location.href = 'login.html';
+                }, 1500);
+            });
+        });
+    </script>
+    
+    <!-- 验证码 -->
+    <script src="https://www.recaptcha.net/recaptcha/api.js" async defer></script>
+</body>
+</html>

@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amicora Minecraft 服务器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: oklab(56.257% -0.02435 -0.16421 / 0.85);
+            --primary-light: oklab(65% -0.02 -0.15 / 0.9);
+            --primary-dark: oklab(48% -0.025 -0.17 / 0.9);
+            --secondary-color: #3a6073;
+            --secondary-light: #4a7a91;
+            --background-color: #f7f9fc;
+            --text-color: #333;
+            --white-color: #fff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --shadow-hover: rgba(0, 0, 0, 0.15);
+            --dark-bg: #1a1a2e;
+            --dark-light: #16213e;
+            --gray-400: #94a3b8;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --transition-base: all 0.3s ease;
+            --transition-slow: all 0.5s ease;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background 1s ease, color 1s ease;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white-color);
+            text-align: center;
+            padding: 5rem 1rem 6rem;
+            text-shadow: 1px 1px 3px var(--shadow-color);
+            transition: background 1s ease;
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+        }
+
+        /* 场景特效容器 */
+        .scene-effects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            margin: 0 0 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s forwards 0.2s;
+        }
+        
+        header p.welcome-message {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            opacity: 0;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s forwards 0.4s;
+        }
+
+        .daily-quote {
+            font-style: italic;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1.2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s forwards 0.6s;
+        }
+
+        main {
+            padding: 3rem 0;
+            margin-top: -3rem;
+        }
+
+        .content-wrapper {
+            background-color: var(--white-color);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 24px var(--shadow-color);
+            margin-bottom: 3rem;
+            transition: var(--transition-slow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid rgba(58, 96, 115, 0.2);
+            padding-bottom: 0.8rem;
+            margin: 0 0 2rem;
+            font-size: 1.8rem;
+            transition: var(--transition-base);
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background-color: var(--secondary-color);
+            transition: var(--transition-base);
+        }
+
+        h2:hover::after {
+            width: 100%;
+        }
+
+        section {
+            margin-bottom: 3rem;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: var(--transition-base);
+            position: relative;
+        }
+
+        a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--secondary-color);
+            transition: var(--transition-base);
+        }
+
+        a:hover {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        a:hover::after {
+            width: 100%;
+        }
+
+        strong {
+            background-color: #eef5ff;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-family: "Courier New", Courier, monospace;
+            border: 1px solid #dbeaff;
+            font-size: 1.1em;
+            transition: var(--transition-base);
+        }
+
+        strong:hover {
+            background-color: #e1edff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        ul, ol {
+            padding-left: 1.8rem;
+        }
+        
+        li {
+            margin-bottom: 1rem;
+            position: relative;
+            padding-left: 0.5rem;
+        }
+
+        li::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.7rem;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+        }
+
+        /* 导航菜单样式.圆形按钮 */
+        .menu-container {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1000;
+        }
+
+       .menu-label {
+            background-color: var(--primary-color);
+            color: white;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-weight: bold;
+            transition: var(--transition-base);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-container:hover .menu-label {
+            transform: scale(1.05);
+            background-color: var(--primary-dark);
+        }
+
+        .menu-container.active .menu-label {
+            transform: rotate(90deg);
+            background-color: var(--secondary-color);
+        }
+
+        .menu-icon {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 3px 0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-container.active .menu-icon:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+
+        .menu-container.active .menu-icon:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-container.active .menu-icon:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            background-color: var(--dark-bg);
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-top: 80px; /* 为圆形按钮留出空间 */
+            overflow-y: auto;
+            height: 100vh;
+            z-index: 999;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+        }
+
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+
+        .mobile-menu a {
+            display: block;
+            color: white;
+            padding: 0.9rem 1.8rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            transition: var(--transition-base);
+            font-weight: 500;
+        }
+
+        .mobile-menu a::after {
+            display: none;
+        }
+
+        .mobile-menu a:hover {
+            background-color: var(--dark-light);
+            color: var(--primary-color);
+            padding-left: 2rem;
+        }
+
+        .mobile-menu a:hover i {
+            transform: translateX(5px);
+        }
+
+        .mobile-menu a i {
+            margin-right: 0.8rem;
+            width: 20px;
+            text-align: center;
+            transition: var(--transition-base);
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: rgba(51, 65, 85, 0.3);
+            margin: 1rem 0;
+        }
+
+        /* 设置按钮 */
+        .settings-btn {
+            display: block;
+            color: white;
+            padding: 0.9rem 1.8rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition-base);
+            font-weight: 500;
+        }
+
+        .settings-btn i {
+            margin-right: 0.8rem;
+            width: 20px;
+            text-align: center;
+            transition: var(--transition-base);
+        }
+
+        .settings-btn:hover {
+            background-color: var(--dark-light);
+            color: var(--primary-color);
+            padding-left: 2rem;
+        }
+
+        .settings-btn:hover i {
+            transform: translateX(5px);
+        }
+
+        /* 服务器状态样式 */
+        .server-status {
+            display: inline-block;
+            background-color: var(--dark-light);
+            backdrop-filter: blur(4px);
+            padding: 1.2rem 1.8rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            margin: 1rem 0 2.5rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: var(--transition-base);
+        }
+
+        .server-status:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #10b981;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 规则区域样式 */
+        #rules {
+            background-color: var(--dark-light);
+            padding: 4rem 1rem;
+            border-radius: var(--border-radius);
+            color: white;
+            transition: background 1s ease;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #rules::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        #rules h2 {
+            color: white;
+            border-bottom-color: rgba(255,255,255,0.1);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+        }
+
+        #rules h2::after {
+            background-color: var(--primary-color);
+        }
+
+        .rules-subtitle {
+            text-align: center;
+            color: var(--gray-400);
+            margin: 1rem auto 3rem;
+            max-width: 600px;
+            font-size: 1.1rem;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .rules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .rule-card {
+            background-color: rgba(26, 26, 46, 0.7);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            transition: var(--transition-base);
+            backdrop-filter: blur(4px);
+        }
+
+        .rule-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-color: rgba(90, 155, 213, 0.3);
+        }
+
+        .rule-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            transition: var(--transition-base);
+            font-size: 1.4rem;
+        }
+
+        .rule-card i {
+            margin-right: 0.8rem;
+            font-size: 1.5rem;
+        }
+
+        .punishment-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+        }
+
+        @media (min-width: 640px) {
+            .punishment-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .punishment-card {
+            background-color: rgba(26, 26, 46, 0.7);
+            padding: 1.2rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            transition: var(--transition-base);
+            backdrop-filter: blur(4px);
+        }
+
+        .punishment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .punishment-card h4 {
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .punishment-card p {
+            font-size: 0.95rem;
+            color: var(--gray-400);
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: var(--dark-bg);
+            color: var(--gray-400);
+            padding: 4rem 1rem 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            transition: background 1s ease, color 1s ease;
+            clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .community {
+            max-width: 850px;
+            margin: 0 auto;
+            padding-top: 2rem;
+        }
+
+        .community p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .copyright {
+            font-size: 0.95rem;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(51, 65, 85, 0.3);
+        }
+
+        /* 设置页面样式 */
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .settings-modal.active {
+            opacity: 1;
+        }
+
+        .settings-content {
+            background-color: var(--white-color);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transition: background 1s ease;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+
+        .settings-modal.active .settings-content {
+            transform: translateY(0);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--gray-400);
+            padding-bottom: 1.2rem;
+        }
+
+        .close-settings {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: var(--transition-base);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-settings:hover {
+            color: var(--primary-color);
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .settings-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 1.2rem;
+            color: var(--primary-color);
+            transition: var(--transition-base);
+            font-size: 1.4rem;
+        }
+
+        .language-options, .scene-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .language-btn, .scene-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--primary-color);
+            border-radius: 25px;
+            background-color: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition-base);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+
+        .language-btn:hover, .scene-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .language-btn.active, .scene-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(56, 139, 253, 0.3);
+        }
+
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--gray-400);
+            border-radius: 25px;
+            background-color: transparent;
+            cursor: pointer;
+            transition: var(--transition-base);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(56, 139, 253, 0.3);
+        }
+
+        .reset-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.5rem 1.2rem;
+            border: none;
+            border-radius: 25px;
+            background-color: #ef4444;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition-base);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .reset-btn i {
+            margin-right: 0.5rem;
+        }
+
+        .reset-btn:hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 2rem 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+
+            .server-status {
+                width: 100%;
+                text-align: center;
+            }
+
+            .settings-content {
+                padding: 2rem 1.5rem;
+            }
+
+            header {
+                padding: 4rem 1rem 5rem;
+                clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
+            }
+
+            footer {
+                clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 100%);
+            }
+        }
+
+        /* 场景特效样式 */
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            from { opacity: 0.3; }
+            to { opacity: 1; }
+        }
+
+        .meteor {
+            position: absolute;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+            width: 100px;
+            height: 2px;
+            animation: meteor 1s linear;
+        }
+
+        @keyframes meteor {
+            from { transform: translateX(0) rotate(-45deg); opacity: 1; }
+            to { transform: translateX(-200px) rotate(-45deg); opacity: 0; }
+        }
+
+        .whale {
+            position: absolute;
+            width: 150px;
+            height: 80px;
+            background: linear-gradient(135deg, #3a7bd5, #5a9bd5);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: whale-swim 20s linear infinite;
+            opacity: 0.7;
+        }
+
+        .whale::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: 30px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: blow 3s infinite;
+        }
+
+        @keyframes whale-swim {
+            0% { transform: translateX(120%) translateY(50%); }
+            100% { transform: translateX(-120%) translateY(20%); }
+        }
+
+        @keyframes blow {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .tree {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 200px;
+        }
+
+        .tree-trunk {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 60px;
+            background-color: #8B4513;
+            border-radius: 5px;
+        }
+
+        .tree-leaves {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(34,197,94,0.8) 0%, rgba(22,156,73,0.8) 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(34,197,94,0.8);
+        }
+
+        /* 动画效果 */
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 加入按钮样式 */
+        .join-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            margin: 1.5rem 0;
+            transition: var(--transition-base);
+            box-shadow: 0 4px 15px rgba(56, 139, 253, 0.3);
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .join-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(56, 139, 253, 0.4);
+            color: white;
+        }
+
+        .join-button i {
+            margin-right: 0.5rem;
+        }
+
+        /* 特性卡片 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        @media (min-width: 768px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .feature-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: var(--transition-base);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            border-color: rgba(56, 139, 253, 0.2);
+        }
+
+        .feature-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-card h3 i {
+            margin-right: 0.8rem;
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单容器 -->
+    <div class="menu-container" id="menu-container">
+        <div class="menu-label" id="menu-label">
+            <div class="menu-icon"></div>
+            <div class="menu-icon"></div>
+            <div class="menu-icon"></div>
+        </div>
+        <div id="mobile-menu" class="mobile-menu">
+            <a href="#about_we"><i class="fas fa-info-circle"></i>关于我们</a>
+            <a href="#status"><i class="fas fa-server"></i>服务器状态</a>
+            <a href="#about_Amicora"><i class="fas fa-gamepad"></i>服务器信息</a>
+            <a href="#join"><i class="fas fa-sign-in-alt"></i>如何加入</a>
+            <a href="#rules"><i class="fas fa-book"></i>服务器规则</a>
+            <a href="#community"><i class="fas fa-users"></i>玩家社区</a>
+            <div class="menu-divider"></div>
+            <a href="#articles"><i class="fas fa-newspaper"></i>文章与新闻</a>
+            <a href="#landscapes"><i class="fas fa-image"></i>服内景观</a>
+            <a href="#commands"><i class="fas fa-terminal"></i>服内指令指南</a>
+            <a href="#fun"><i class="fas fa-laugh-beam"></i>趣味</a>
+            <div class="menu-divider"></div>
+            <a href="hdcd.html"><i class="fas fa-th-list"></i>互动菜单</a>
+            <div class="menu-divider"></div>
+            <button class="settings-btn" id="settings-btn">
+                <i class="fas fa-cog"></i>设置
+            </button>
+        </div>
+    </div>
+
+    <header>
+        <div class="scene-effects" id="scene-effects"></div>
+        <div class="header-content">
+            <h1 id="time-greeting">欢迎来到 Amicora World</h1>
+            <p class="welcome-message">一个充满无限可能性的 Minecraft 世界</p>
+            <p class="daily-quote" id="daily-quote">探索未知，创造无限</p>
+            <a href="#join" class="join-button"><i class="fas fa-arrow-right"></i>立即加入</a>
+        </div>
+        <!-- 背景音乐 -->
+        <audio id="background-music" loop>
+            <source src="https://m801.music.126.net/20251025161713/ffed59b767c982e0d6cea2a42264deee/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/30324516634/d3c0/5b2b/bcba/9236539d88b329985bf3623e09a6e64c.mp3?vuutv=NUbcyDjmSxzWh5XnkfXe3iC9wUI6U65Q8DC7uZBT+9rolR1GDUzihWG/lRV24qC2Ys7FHA2h0eSz0LFT2BZZlnPe5/NXTBQwz2e3Jit5ZoQ=&cdntag=bWFyaz1vc193ZWIscXVhbGl0eV9zdGFuZGFyZA" type="audio/mpeg">
+            您的浏览器不支持音频播放
+        </audio>
+    </header>
+    <div class="container">
+        <main>
+            <div class="content-wrapper">
+                <section id="about_we">
+                    <h2>关于我们</h2>
+                    <p>这里是 Amicora World 服务器的简介。我们致力于打造一个友好、公平的 Minecraft 生存社区，让每位玩家都能享受纯粹的游戏乐趣。无论你是建筑大师、红石专家还是探险达人，都能在这里找到属于自己的天地。</p>
+                    
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <h3><i class="fas fa-heart"></i>友好社区</h3>
+                            <p>我们拥有一个热情友好的玩家社区，管理员团队积极维护游戏环境，让每位玩家都能感受到家的温暖。</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3><i class="fas fa-shield-alt"></i>公平公正</h3>
+                            <p>严格打击作弊行为，确保所有玩家在公平的环境中游戏，让你的每一份努力都得到应有的回报。</p>
+                        </div>
+                
+                    </div>
+                </section>
+    
+                <!-- 服务器状态 -->
+                <section id="status">
+                    <div class="server-status">
+                        <div class="flex items-center justify-center gap-3 mb-2">
+                            <span class="status-indicator"></span>
+                            <span>服务器状态：离线</span>
+                            <span class="text-gray-400">status.vahiru.xyz</span>
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="about_Amicora">
+                    <h2>服务器信息</h2>
+                    <ul>
+                        <li>登录方式: 采用正版与 Littleskin 共存（无正版账号需前往<a href="https://littleskin.cn/" target="_blank">LittleSkin网站</a>注册登录并创建角色）</li>
+                        <li>登录平台: 基岩版与Java版都可进入</li>
+                        <li>基本特性：可生电，困难模式，死亡不掉落，世界大小正常，加入了传送插件“huskhome”</li>
+                        <li>核心: Purpur1.21.8</li>
+                        <li>类型：原版生存服务器，禁止使用任何破坏游戏平衡的插件和MOD</li>
+                        <li>名称：服务器名字Amicora(读作阿米科拉)</li>
+                        <li>端口：基岩版[20721]</li>
+                        <li>版本：支持1.13~1.21.8</li>
+                        <li>地图：原版生存地图，定期备份</li>
+                        <li>规则：禁止作弊，禁止恶意破坏他人建筑，禁止使用任何破坏游戏平衡的插件和MOD，禁止辱骂他人</li> 
+                        <li>社区：我们有一个活跃的社区，欢迎加入我们的QQ群:259378600，与其他玩家交流和分享你的冒险经历！</li>
+                        <li>管理团队：我们有一支热情且负责的管理团队，致力于为玩家提供一个安全、有趣的游戏环境。</li>
+                    </ul>
+                </section>
+                
+                <section id="join">
+                    <h2>如何加入</h2>
+                    <p>加入我们非常简单！</p>
+                    <ol>
+                        <li>打开你的 Minecraft 启动器。</li>
+                        <li>选择“多人游戏”。</li>
+                        <li>点击“添加服务器”。</li>
+                        <li>输入服务器地址<strong>play.amicora.xyz</strong></li>
+                        <li>点击“完成”，然后加入服务器开始你的冒险！</li>
+                    </ol>
+                    <a href="#" class="join-button"><i class="fas fa-gamepad"></i>立即启动游戏</a>
+                </section>
+
+                <!-- 新增菜单对应的内容区域 -->
+                <section id="articles">
+                    <h2>文章与新闻</h2>
+                    <p>这里将发布服务器的最新动态、活动公告和游戏攻略等内容，敬请期待！</p>
+                </section>
+
+                <section id="landscapes">
+                    <h2>服内景观</h2>
+                    <p>展示服务器内玩家们的精彩建筑和自然风光，欢迎大家投稿分享你的作品！</p>
+                </section>
+
+                <section id="commands">
+                    <h2>服内指令指南</h2>
+                    <p>这里将详细介绍服务器支持的各种指令及使用方法，帮助你更好地体验游戏。</p>
+                </section>
+
+                <section id="fun">
+                    <h2>趣味</h2>
+                    <p>分享服务器内的趣事、搞笑瞬间和玩家创作的趣味内容，让我们一起欢笑！</p>
+                </section>
+            </div>
+
+            <!-- 服务器规则 -->
+            <section id="rules">
+                <div class="container">
+                    <h2>服务器规则</h2>
+                    <p class="rules-subtitle">为了维护良好的游戏环境，请所有玩家遵守以下规则</p>
+                    
+                    <div class="rules-grid">
+                        <div class="rule-card">
+                            <h3 class="text-xl mb-6 flex items-center">
+                                <i class="fas fa-ban mr-3"></i> 禁止行为
+                            </h3>
+                            
+                            <ul class="space-y-4">
+                                <li class="flex">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>使用作弊客户端、外挂、脚本或任何不公平的手段获取优势</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>griefing（破坏他人建筑）、偷窃他人财物或故意干扰他人游戏体验</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>发布不适当内容、仇恨言论、歧视性语言或骚扰其他玩家</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>利用服务器漏洞或bug获取不正当利益</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>冒充服务器 staff 或其他玩家</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>发布广告、推广其他服务器或无关内容</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="rule-card">
+                            <h3 class="text-xl mb-6 flex items-center">
+                                <i class="fas fa-check-circle mr-3"></i> 玩家应遵守
+                            </h3>
+                            
+                            <ul class="space-y-4">
+                                <li class="flex">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span>尊重他人，保持友好和礼貌的态度</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span>保护自己的建筑和物品</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span>在指定区域进行PVP活动，未经允许不得攻击其他玩家</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span>遵守合理指示，积极配合服务器管理</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span>发现违规行为或漏洞时，及时向管理员报告</span>
+                                </li>
+                                <li class="flex">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span>享受游戏的同时，帮助新玩家融入社区</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="rule-card mt-4">
+                        <h3 class="text-xl mb-4">处罚机制</h3>
+                        <p class="mb-4">违反服务器规则将根据情节严重程度受到相应处罚，包括但不限于：</p>
+                        <div class="punishment-grid">
+                            <div class="punishment-card">
+                                <h4 class="text-yellow-500 mb-2">警告</h4>
+                                <p>首次轻微违规将给予警告</p>
+                            </div>
+                            <div class="punishment-card">
+                                <h4 class="text-orange-500 mb-2">禁言</h4>
+                                <p>言语违规将受到禁言处罚</p>
+                            </div>
+                            <div class="punishment-card">
+                                <h4 class="text-red-500 mb-2">临时封禁</h4>
+                                <p>较严重违规将被临时封禁</p>
+                            </div>
+                            <div class="punishment-card">
+                                <h4 class="text-red-700 mb-2">永久封禁</h4>
+                                <p>严重或多次违规将被永久封禁</p>
+                            </div>
+                        </div>
+                        <p class="mt-4">如对处罚有异议，可通过社区渠道提交申诉，管理员将重新审核。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 玩家社区 -->
+    <footer>
+        <section id="community" class="community"> 
+            <p>有疑问吗？加入我们的玩家社区 <a href="https://qm.qq.com/cgi-bin/qm/qr?k=xxx" target="_blank">Q群:259378600</a></p>
+            <a href="#join" class="join-button"><i class="fas fa-comment"></i>加入社区</a>
+            <p class="copyright">&copy; 2025 Amicora. 版权所有。</p>
+        </section>
+    </footer>
+
+    <!-- 设置页面 -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>设置</h2>
+                <button class="close-settings" id="close-settings">&times;</button>
+            </div>
+            <button class="reset-btn" id="reset-settings"><i class="fas fa-redo"></i>重置</button>
+            
+            <div class="settings-section">
+                <h3>语言切换(不可用)</h3>
+                <div class="language-options">
+                    <button class="language-btn active" data-lang="zh-CN">简体中文</button>
+                    <button class="language-btn" data-lang="zh-TW">繁体中文</button>
+                    <button class="language-btn" data-lang="wyw">文言文</button>
+                    <button class="language-btn" data-lang="en">英语</button>
+                    <button class="language-btn" data-lang="meow">喵语</button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>场景切换</h3>
+                <div class="scene-options">
+                    <button class="scene-btn active" data-scene="default">默认</button>
+                    <button class="scene-btn" data-scene="pastel">粉蓝渐变(带星星粒子)</button>
+                    <button class="scene-btn" data-scene="glass">液体玻璃</button>
+                    <button class="scene-btn" data-scene="frosted">毛玻璃</button>
+                    <button class="scene-btn" data-scene="wooden">木质</button>
+                    <button class="scene-btn" data-scene="simple">简约风</button>
+                    <button class="scene-btn" data-scene="galaxy">星空</button>
+                </div>
+                <div class="option-group">
+                    <button class="option-btn" id="random-scene">随机选择</button>
+                    <button class="option-btn" id="time-based-scene">颜色随时间变换</button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>背景音乐</h3>
+                <div class="option-group">
+                    <button class="option-btn active" id="music-toggle">开启</button>
+                    <button class="option-btn" id="music-volume-down">音量减小</button>
+                    <button class="option-btn" id="music-volume-up">音量增大</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // 背景音乐控制
+        const backgroundMusic = document.getElementById('background-music');
+        const musicToggle = document.getElementById('music-toggle');
+        const musicVolumeDown = document.getElementById('music-volume-down');
+        const musicVolumeUp = document.getElementById('music-volume-up');
+
+        // 设置初始音量
+        backgroundMusic.volume = 0.3;
+
+        // 切换音乐播放状态
+        musicToggle.addEventListener('click', () => {
+            if (backgroundMusic.paused) {
+                backgroundMusic.play().catch(e => {
+                    console.log('自动播放被浏览器阻止，请用户交互后再播放:', e);
+                });
+                musicToggle.textContent = '关闭';
+            } else {
+                backgroundMusic.pause();
+                musicToggle.textContent = '开启';
+            }
+            musicToggle.classList.toggle('active');
+        });
+
+        // 减小音量
+        musicVolumeDown.addEventListener('click', () => {
+            backgroundMusic.volume = Math.max(0, backgroundMusic.volume - 0.1);
+        });
+
+        // 增大音量
+        musicVolumeUp.addEventListener('click', () => {
+            backgroundMusic.volume = Math.min(1, backgroundMusic.volume + 0.1);
+        });
+
+        // 在用户交互时播放音乐
+        document.addEventListener('click', () => {
+            if (backgroundMusic.paused && musicToggle.classList.contains('active')) {
+                backgroundMusic.play().catch(e => console.log('播放失败:', e));
+            }
+        }, { once: true });
+
+        // 移动端菜单切换
+        const menuLabel = document.getElementById('menu-label');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuContainer = document.getElementById('menu-container');
+        
+        menuLabel.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            menuContainer.classList.toggle('active');
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                    
+                    // 关闭移动菜单
+                    mobileMenu.classList.remove('active');
+                    menuContainer.classList.remove('active');
+                }
+            });
+        });
+
+        // 设置面板控制
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettings = document.getElementById('close-settings');
+        
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'flex';
+            // 触发动画
+            setTimeout(() => {
+                settingsModal.classList.add('active');
+            }, 10);
+            // 关闭菜单
+            mobileMenu.classList.remove('active');
+            menuContainer.classList.remove('active');
+        });
+        
+        closeSettings.addEventListener('click', () => {
+            settingsModal.classList.remove('active');
+            setTimeout(() => {
+                settingsModal.style.display = 'none';
+            }, 300);
+        });
+        
+        // 点击模态框外部关闭
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('active');
+                setTimeout(() => {
+                    settingsModal.style.display = 'none';
+                }, 300);
+            }
+        });
+
+        // 选项按钮激活状态切换
+        document.querySelectorAll('.option-btn[data-fps], .option-btn[data-quality]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 移除同组中其他按钮的active类
+                this.parentElement.querySelectorAll('.option-btn').forEach(sibling => {
+                    sibling.classList.remove('active');
+                });
+                // 为当前按钮添加active类
+                this.classList.add('active');
+            });
+        });
+
+        // 场景按钮激活状态切换
+        document.querySelectorAll('.scene-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.scene-btn').forEach(sibling => {
+                    sibling.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        // 随机场景按钮
+        document.getElementById('random-scene').addEventListener('click', () => {
+            const scenes = document.querySelectorAll('.scene-btn');
+            const randomIndex = Math.floor(Math.random() * scenes.length);
+            scenes.forEach((scene, index) => {
+                scene.classList.toggle('active', index === randomIndex);
+            });
+        });
+
+        // 时间问候语
+        function updateGreeting() {
+            const now = new Date();
+            const hour = now.getHours();
+            const greetingElement = document.getElementById('time-greeting');
+            
+            let greeting;
+            if (hour < 6) {
+                greeting = '凌晨好，欢迎来到 Amicora World';
+            } else if (hour < 9) {
+                greeting = '早上好，欢迎来到 Amicora World';
+            } else if (hour < 12) {
+                greeting = '上午好，欢迎来到 Amicora World';
+            } else if (hour < 14) {
+                greeting = '中午好，欢迎来到 Amicora World'; 
+            } else if (hour < 18) {
+                greeting = '下午好，欢迎来到 Amicora World';
+            } else if (hour < 22) {
+                greeting = '晚上好，欢迎来到 Amicora World';
+            } else {
+                greeting = '夜深了，欢迎来到 Amicora World';
+            }
+            
+            greetingElement.textContent = greeting;
+        }
+        
+        // 初始化问候语
+        updateGreeting();
+    </script>
+</body>
+</html>

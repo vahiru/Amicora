@@ -1,0 +1,2458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amicora World - 我的世界服务器</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3ad59fcd', 
+            secondary: '#EC4899', // 辅助色
+            accent: '#10B981', // 强调色
+            glass: 'rgba(255, 255, 255, 0.15)', // 玻璃态背景
+            'glass-dark': 'rgba(17, 24, 39, 0.85)', // 深色模式玻璃态
+            'glass-hover': 'rgba(255, 255, 255, 0.25)', // 玻璃态悬停背景
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.6s ease-out forwards', // 新增淡入动画
+            'slide-up': 'slideUp 0.5s ease-out forwards', // 新增上滑动画
+          },
+           keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            }
+          }
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      }
+      .text-gradient {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+      .bg-blur {
+        backdrop-filter: blur(8px);
+      }
+    }
+  </style>
+  
+  <style>
+    /* 全局样式 */
+    body {
+      transition: background-image 1s ease-in-out, background-color 0.3s ease;
+      overflow-x: hidden;
+    }
+    
+    /* 背景图样式 */
+    .bg-anime {
+      background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      
+    }
+    
+    .bg-pure {
+      background-image: none;
+    }
+    
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(92, 246, 233, 0.5);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgb(92, 246, 128);
+    }
+    
+    /* 平滑滚动 */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* 动画延迟类 */
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+    .delay-600 { animation-delay: 0.6s; }
+
+    /* 滚动动画观察器 */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .scroll-reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* 工具提示样式 */
+    .tooltip {
+      position: relative;
+    }
+
+     .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(17, 24, 39, 0.9);
+      color: rgb(255, 255, 255);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 100;
+      animation: fadeIn 0.2s ease-out;
+    }
+  </style>
+
+  <style>
+    /* 添加到现有CSS文件中 */
+#consoleContainer.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+#consoleContainer.minimized {
+  height: 24px;
+}
+
+#consoleContainer.minimized #consoleOutput,
+#consoleContainer.minimized .console-input-container {
+  display: none;
+}
+
+#consoleOutput .error {
+  color: #ff6b6b;
+}
+
+#consoleOutput .info {
+  color: #4ecdc4;
+}
+
+#consoleOutput .system {
+  color: #ffd166;
+}
+  </style>
+
+  <style>
+    /* 添加到现有CSS文件 */
+.search-result-item {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.search-result-item:hover {
+  background-color: rgba(56, 139, 253, 0.1);
+}
+
+.search-result-item .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 0.8rem;
+  object-fit: cover;
+}
+
+.search-result-item .result-info {
+  flex: 1;
+}
+
+.search-result-item .result-title {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.search-result-item .result-type {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: capitalize;
+}
+
+.search-results-header {
+  padding: 0.8rem 1rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 500;
+}
+
+.search-no-results {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.search-no-results i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #d1d5db;
+}
+
+#mobileSearchModal.active {
+  display: flex;
+}
+
+#mobileSearchModal.active #searchModalContent {
+  scale: 1;
+  opacity: 1;
+}
+
+/* 猫耳光标样式 */
+.cat-cursor {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ff69b4" stroke-width="2"><path d="M12 4v16M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg>'), auto;
+}
+
+  </style>
+
+  
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 bg-anime">
+  <!-- 音频播放器 (默认隐藏) -->
+  <audio id="bgMusic" loop>
+    <source src="mp3/暮春.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 导航栏 -->
+  <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <nav class="glass-effect bg-glass dark:bg-glass-dark border-b border-white/10 dark:border-gray-800">
+      <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <!-- Logo 和名称 -->
+         <!-- Logo和名称容器 -->
+    <div class="logo-container">
+        <div class="flex items-center space-x-2">
+            <!-- Logo图片（使用占位图替代示例） -->
+            <img 
+                src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg"  
+                alt="Amicora Logo" 
+                class="w-10 h-10 rounded-lg object-contain"  
+            />
+            <!-- 名称 -->
+            <span class="text-xl font-bold text-white text-shadow">
+                Amicora World
+            </span>
+        </div>
+    </div>
+        
+        <!-- 导航链接 - 桌面端 -->
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="index.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="返回首页">
+            首页
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="#about" class="nav-link text-white hover:text-primary transition-colors tooltip relative" data-tooltip="服务器各类信息或帮助">
+            关于
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="#community" class="nav-link text-white hover:text-primary transition-colors tooltip relative" data-tooltip="暂时还没想到做什么">
+            玩家社区
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="#news" class="nav-link text-white hover:text-primary transition-colors tooltip relative" data-tooltip="一些好的文章或关于Amicora World的公告">
+            文章与新闻
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="#friends" class="nav-link text-white hover:text-primary transition-colors tooltip relative" data-tooltip="和本服已建立友好关系的服务器">
+            友情服务器
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="#recommendations" class="nav-link text-white hover:text-primary transition-colors tooltip relative" data-tooltip="个人推荐的优质站点">
+            推荐站点
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="hdcd.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="互动功能菜单">
+            互动菜单
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="home_old.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="查看旧版主页">
+            初代主页
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="login.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="注册/登录账号">
+            注册/登录
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="profile.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="查看个人主页">
+            个人主页
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="chat.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="玩家聊天室">聊天室
+          <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+        </div>
+        <!-- 主题切换按钮 -->
+        <div class="flex items-center space-x-3">
+          <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-moon-o"></i>
+          </button>
+          <button id="bgToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-image"></i>
+          </button>
+          <button id="musicToggle" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-music"></i>
+          </button>
+          <button id="hideContentBtn" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-eye"></i>
+          </button>
+          
+          <!-- 移动端菜单按钮 -->
+          <button id="mobileMenuBtn" class="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-bars"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 移动端菜单 -->
+      <div id="mobileMenu" class="md:hidden hidden glass-effect bg-glass/90 dark:bg-glass-dark/90 border-t border-white/10 transform transition-all duration-300 ease-in-out">
+        <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+          <a href="index.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">首页</a>
+          <a href="#about" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">关于</a>
+          <a href="#community" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">玩家社区</a>
+          <a href="#news" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">文章与新闻</a>
+          <a href="#friends" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">友情服务器</a>
+          <a href="#recommendations" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">推荐站点</a>
+          <a href="hdcd.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">互动菜单</a>
+          <a href="home_old.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">初代主页</a>
+          <a href="login.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">注册/登录</a>
+          <a href="profile.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">个人主页</a>
+          <a href="chat.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">聊天室</a>
+         </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 主内容 -->
+  <main class="container mx-auto px-4 pt-28 pb-16">
+    <!-- 欢迎区域 -->
+    <section id="welcome" class="mb-16 text-center">
+      <h1 id="greeting" class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-white text-shadow mb-4 animate-pulse-slow"></h1>
+      <p id="dailyQuote" class="text-[clamp(1.2rem,3vw,1.8rem)] text-white text-shadow max-w-3xl mx-auto"></p>
+    </section>
+    
+    <!-- 关于大版块 -->
+    <section id="about" class="mb-20 scroll-mt-24">
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+        <h2 class="text-3xl md:text-4xl font-bold mb-8 text-white text-shadow flex items-center">
+          <i class="fa fa-info-circle mr-3 text-primary"></i>关于
+        </h2>
+       
+<!-- 在合适位置添加搜索框 -->
+<div class="search-container relative mx-4 hidden md:block">
+  <input type="text" id="searchInput" placeholder="搜索用户、文章或兴趣..." 
+         class="pl-10 pr-4 py-2 w-64 lg:w-80 rounded-full bg-gray-100 dark:bg-gray-800 border border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+  <i class="fa fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+  <div id="searchResults" class="absolute top-full left-0 right-0 mt-2 rounded-lg shadow-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden z-50 hidden fade-in"></div>
+</div>
+
+<!-- 移动端搜索按钮 -->
+<button id="mobileSearchBtn" class="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+  <i class="fa fa-search"></i>
+</button>
+
+<!-- 移动端搜索模态框 -->
+<div id="mobileSearchModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl w-11/12 max-w-md p-6 shadow-2xl transform transition-all scale-95 opacity-0" id="searchModalContent">
+    <div class="relative mb-4">
+      <input type="text" id="mobileSearchInput" placeholder="搜索用户、文章或兴趣..." 
+             class="pl-10 pr-4 py-3 w-full rounded-lg bg-gray-100 dark:bg-gray-700 border-0 focus:outline-none focus:ring-2 focus:ring-primary">
+      <i class="fa fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+      <button id="closeSearchModal" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div id="mobileSearchResults" class="max-h-80 overflow-y-auto"></div>
+  </div>
+</div>
+
+         <!-- 七个小版块 - 响应式网格布局 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- 服务器介绍 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-float">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">服务器介绍</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up transition-transform duration-300"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-4">Amicora World是一个友好、和谐的我的世界服务器社区</p>
+              <p class="text-gray-200">服务器名字读作阿米科拉</p>
+            </div>
+          </div>
+       
+          
+          <!-- 服务器状态 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-float delay-100">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">服务器状态</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <div class="flex items-center mb-3">
+                <span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                <span class="text-red-400 font-medium">离线</span>
+              </div>
+              <p class="text-gray-200 mb-2">当前玩家: <span id="playerCount">0/100</span></p>
+              <div class="w-full bg-gray-700 rounded-full h-2.5 mb-4">
+                <div class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+              </div>
+              <canvas id="serverStatusChart" height="120"></canvas>
+            </div>
+          </div>
+          
+          <!-- 服务器信息 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-float delay-200">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">服务器信息</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <ul class="text-gray-200 space-y-2">
+                <li>登录方式: 采用正版与 Littleskin 共存（无正版账号需前往<a href="https://littleskin.cn/" target="_blank">LittleSkin网站</a>注册登录并创建角色）</li>
+                 <li class="flex items-center"><i class="fa fa-clock-o mr-2 text-primary"></i> 开服时间: 2025.7.7</li>
+                        <li class="flex items-center"><i class="fa fa-map mr-2 text-primary"></i> 模式: 生存</li>
+                        <li class="flex items-center"><i class="fa fa-plug mr-2 text-primary"></i> 插件: 基础插件</li>
+                        <li class="flex items-center"><i class="fa fa-shield mr-2 text-primary"></i> 反作弊: 启用</li>        
+                <li>登录平台: 基岩版与Java版都可进入</li> 
+                <li>基本特性：可生电，困难模式，死亡不掉落，世界大小正常，加入了传送插件“huskhome”</li>
+                <li>核心: Purpur1.21.8</li>
+                <li>类型：原版生存服务器，禁止使用任何破坏游戏平衡的插件和MOD</li>
+                <li>端口：基岩版[20721]</li>
+                <li>版本：支持1.13~1.21.8</li>
+                <li>地图：原版生存地图，定期备份</li>
+                <li>规则：禁止作弊，禁止恶意破坏他人建筑，禁止使用任何破坏游戏平衡的插件和MOD，禁止辱骂他人</li> 
+                <li>社区：我们有一个活跃的社区，欢迎加入我们的QQ群:259378600，与其他玩家交流和分享你的冒险经历！</li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- 服务器规则 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-float delay-300">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">服务器规则</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <ul class="text-gray-200 space-y-2 list-disc pl-5">
+                <li>禁止使用外挂、作弊客户端</li>
+                <li>禁止恶意破坏他人建筑</li>
+                <li>禁止发布不良信息、广告</li>
+                <li>禁止辱骂、攻击其他玩家</li>
+                <li>禁止利用漏洞获取不正当利益</li>
+                <li>请尊重管理员和其他玩家</li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- 服内指令指南 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-float delay-400">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">服内指令指南</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <ul class="text-gray-200 space-y-2">
+                <li><code class="bg-gray-700 px-1 rounded">/help</code> - 查看帮助</li>
+                <li><code class="bg-gray-700 px-1 rounded">/spawn</code> - 返回出生点</li>
+                <li><code class="bg-gray-700 px-1 rounded">/sethome [地点名]</code> - 设置传送点</li>
+                <li><code class="bg-gray-700 px-1 rounded">/spawn</code> - 返回出生点</li>
+                <li><code class="bg-gray-700 px-1 rounded">/home [地点名]</code> - 回家</li>
+                <li><code class="bg-gray-700 px-1 rounded">/back</code> - 回到死亡点</li>
+                <li><code class="bg-gray-700 px-1 rounded">/tpa [玩家名]</code> - 请求传送到其他玩家</li>
+                <li><code class="bg-gray-700 px-1 rounded">/tpahere [玩家名]</code> - 请求其他玩家传送到此处<li>
+                <li><code class="bg-gray-700 px-1 rounded">/tpa </code> - 请求传送到其他玩家</li>
+                <li><code class="bg-gray-700 px-1 rounded">/tell [玩家名] [内容]</code> - 私信</li>  
+                <li><code class="bg-gray-700 px-1 rounded">/report [玩家名] [原因]</code> - 举报玩家</li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- 服内景观 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-float delay-500">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">服内景观</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up transition-transform duration-300"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <img src="images/001.jpg" alt="服务器景观1" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+                <img src="images/002.jpg" alt="服务器景观2" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+                <img src="images/003.jpg" alt="服务器景观3" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+                <img src="images/004.jpg" alt="服务器景观4" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+                <img src="images/005.jpg" alt="服务器景观5" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+                <img src="images/006.jpg" alt="服务器景观6" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+                <img src="images/007.jpg" alt="服务器景观7" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+                <img src="images/008.jpg" alt="服务器景观8" class="rounded-lg w-full h-24 object-cover transition-transform duration-300 hover:scale-110">
+              </div>
+              <p class="text-gray-200 text-sm">我们的服务器拥有许多玩家建造的精美景观，欢迎探索！</p>
+            </div>
+          </div>
+          
+          <!-- 如何加入 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover animate-float delay-600 md:col-span-2 lg:col-span-1">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">如何加入</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">加入我们的服务器非常简单，只需几步：</p>
+              <ol class="text-gray-200 space-y-2 list-decimal pl-5 mb-3">
+                <li>打开你的 Minecraft 启动器。</li>
+                <li>选择“多人游戏”。</li>
+                <li>点击“添加服务器”。</li>
+                <li>输入服务器地址</li>
+                <li>点击“完成”，然后加入服务器开始你的冒险！</li>
+              </ol>
+              <div class="bg-gray-800/50 rounded-lg p-3 flex items-center">
+                <i class="fa fa-server text-primary mr-2"></i>
+                <span class="text-white font-mono">play.vahiru.xyz</span>
+                <button class="ml-auto text-primary hover:text-secondary transition-colors" onclick="copyToClipboard('play.vahiru.xyz')">
+                  <i class="fa fa-copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 音乐播放器控件 -->
+<section>
+<div id="musicPlayer" class="fixed bottom-20 right-6 z-40 glass-effect bg-glass dark:bg-glass-dark rounded-xl p-4 border border-white/10 dark:border-gray-700 shadow-lg w-64 hidden">
+  <div class="flex justify-between items-center mb-3">
+    <h3 class="font-bold text-white text-sm">背景音乐</h3>
+    <button id="closeMusicPlayer" class="text-white/70 hover:text-white">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="mb-3">
+    <p id="currentMusic" class="text-white text-sm truncate">暮春</p>
+    <div class="w-full h-1 bg-white/20 rounded-full mt-2">
+      <div id="musicProgress" class="h-full bg-primary rounded-full" style="width: 30%"></div>
+    </div>
+  </div>
+  
+  <div class="flex justify-between items-center">
+    <button id="prevMusic" class="text-white hover:text-primary transition-colors">
+      <i class="fa fa-step-backward"></i>
+    </button>
+    <button id="toggleMusic" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white hover:bg-primary/90 transition-colors">
+      <i class="fa fa-pause"></i>
+    </button>
+    <button id="nextMusic" class="text-white hover:text-primary transition-colors">
+      <i class="fa fa-step-forward"></i>
+    </button>
+  </div>
+  
+  <div class="mt-3 pt-3 border-t border-white/10">
+    <h4 class="text-white/80 text-xs mb-2">播放列表</h4>
+    <div id="musicPlaylist" class="max-h-40 overflow-y-auto text-sm">
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer bg-white/10">
+        <i class="fa fa-music text-primary mr-2"></i>
+        <span class="text-white truncate">暮春</span>
+      </div>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">星相运轨</span>
+      </div>
+      
+      </div>
+    </div>
+  </div>
+  
+  <div class="mt-2 pt-2 border-t border-white/10">
+    <button id="useMusicAPI" class="w-full text-xs py-1.5 bg-white/10 hover:bg-white/20 text-white rounded transition-colors">
+      <i class="fa fa-random mr-1"></i> 使用网络音乐API
+    </button>
+  </div>
+</div>
+</section>
+
+    <!-- 玩家社区 -->
+    <section id="community" class="mb-20 scroll-mt-24">
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+        <h2 class="text-3xl md:text-4xl font-bold mb-8 text-white text-shadow flex items-center">
+          <i class="fa fa-users mr-3 text-primary"></i>玩家社区
+        </h2>
+        
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- 社区统计 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg">
+            <h3 class="text-xl font-bold text-white mb-4">社区统计</h3>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-white/5 rounded-xl p-4 text-center">
+                <p class="text-gray-300 text-sm">总注册玩家</p>
+                <p class="text-3xl font-bold text-white">unknown</p>
+              </div>
+              <div class="bg-white/5 rounded-xl p-4 text-center">
+                <p class="text-gray-300 text-sm">今日活跃</p>
+                <p class="text-3xl font-bold text-white">0</p>
+              </div>
+            </div>
+            <canvas id="communityChart" height="200"></canvas>
+          </div>
+          
+          <!-- 活跃玩家 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg">
+            <h3 class="text-xl font-bold text-white mb-4">活跃玩家</h3>
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-2">
+              <!-- 玩家列表 -->
+              <div class="flex items-center p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                <img src="images/made by.jpg" alt="玩家头像" class="w-10 h-10 rounded-full mr-3">
+                <div class="flex-1">
+                  <p class="text-white font-medium">Eternal_Memory</p>
+                  <p class="text-gray-300 text-sm">在线时长: n小时</p>
+                </div>
+                <span class="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">离线</span>
+              </div>
+            
+            <button class="mt-4 w-full py-2 border border-primary text-primary hover:bg-primary hover:text-white rounded-lg transition-colors">
+              查看全部玩家
+            </button>
+          </div>
+        </div>
+        <!-- 社区平台 -->
+        <div class="mt-8">
+          <h3 class="text-xl font-bold text-white mb-4">加入我们的社区平台</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="#=?" class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg text-center hover:bg-primary/20 transition-colors group">
+              <div class="w-14 h-14 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/40 transition-colors">
+                <i class="fa fa-discord text-2xl text-white"></i>
+              </div>
+              <p class="text-white font-medium">Q群:259378600</p>
+            </a>
+  
+          </div>
+        </div>
+      </div>
+    </section>
+
+    
+    
+    <!-- 文章与新闻 -->
+    <section id="news" class="mb-20 scroll-mt-24">
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+        <h2 class="text-3xl md:text-4xl font-bold mb-8 text-white text-shadow flex items-center">
+          <i class="fa fa-newspaper-o mr-3 text-primary"></i>文章与新闻
+        </h2>
+
+    <!-- 在home.html的文章与新闻区域添加 -->
+    <div class="section-actions" style="margin-bottom: 20px; display: none;" id="articleActions">
+      <button class="btn btn-primary" id="addArticleBtn">
+        <i class="fas fa-plus"></i> 发布文章
+      </button>
+    </div>
+
+      <!-- 修改文章编辑模态框样式 -->
+<div id="articleModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #1a1a2e; padding: 20px; border-radius: 8px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 20px; color: white;">发布新文章</h3>
+        <form id="articleForm">
+            <div class="form-group">
+                <label for="articleTitle" style="color: white;">文章标题</label>
+                <input type="text" id="articleTitle" required style="width: 100%; padding: 8px; margin-bottom: 15px; color: black;">
+            </div>
+            
+            <!-- 新增图片上传功能 -->
+            <div class="form-group">
+                <label for="articleImage" style="color: white;">附加图片</label>
+                <input type="file" id="articleImage" accept="image/*" style="width: 100%; padding: 8px; margin-bottom: 15px; color: white;">
+                <div id="imagePreview" style="margin-top: 10px; max-width: 100%;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="articleContent" style="color: white;">文章内容</label>
+                <textarea id="articleContent" rows="10" required style="width: 100%; padding: 8px; margin-bottom: 15px; color: black;"></textarea>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">发布</button>
+                <button type="button" class="btn" style="background: #000000; margin-left: 10px;" id="closeModalBtn">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- 新闻卡片 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl overflow-hidden border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <img src="images/example.webp" alt="服务器关停" class="w-full h-48 object-cover">
+            <div class="p-5">
+              <div class="flex items-center text-sm text-gray-300 mb-2">
+                <i class="fa fa-calendar-o mr-1"></i> 2025-11-1
+                <span class="mx-2">•</span>
+                <i class="fa fa-user-o mr-1"></i> 管理员
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">服务器关停</h3>
+              <p class="text-gray-300 mb-4 line-clamp-3">由于服务器在线人数长时间=0，所以运维组决定将服务器暂时性关停，节省运营所消耗的费用，等到未来再决定再次开机<p>
+              <a href="#" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                阅读更多 <i class="fa fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+          
+           <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl overflow-hidden border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <img src="images/The plan of whitelist.jpg" alt="白名单计划" class="w-full h-48 object-cover">
+            <div class="p-5">
+              <div class="flex items-center text-sm text-gray-300 mb-2">
+                <i class="fa fa-calendar-o mr-1"></i> 2025-8-20
+                <span class="mx-2">•</span>
+                <i class="fa fa-user-o mr-1"></i> 管理员
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">白名单计划</h3>
+              <p class="text-gray-300 mb-4 line-clamp-3">添加白名单插件，后通过问卷添加用户白名单,问卷(3个问题):1.你的账号为正版账号还是LittleSkin账号(离线账号无法进入服务器，无正版账号请使用LittleSkin账号登入)2.你的游戏内名字为？3.你的QQ号为？<p>
+              <a href="#" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                阅读更多 <i class="fa fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+          
+          
+        <div class="mt-8 text-center">
+          <button class="py-3 px-6 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors inline-flex items-center">
+             <a href="articles.htm" class="fa fa-chevron-right ml-2" data-tooltip="查看更多文章">查看更多文章</a>
+          </button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 友情服务器 -->
+    <section id="friends" class="mb-20 scroll-mt-24">
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+        <h2 class="text-3xl md:text-4xl font-bold mb-8 text-white text-shadow flex items-center">
+          <i class="fa fa-handshake-o mr-3 text-primary"></i>友情服务器
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          
+          <!-- 友服1 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg flex items-center card-hover">
+            <div class="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mr-4 flex-shrink-0">
+              <i class="fa fa-bolt text-2xl text-yellow-400"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-white mb-1">Vdrias World</h3>
+              <p class="text-gray-300 text-sm mb-2">专注于红石科技与机械的专业服务器</p>
+              <p class="text-gray-300 text-sm mb-2">地址:play.vdrias.cn</p>
+              <div class="flex items-center text-xs text-gray-400">
+                <span class="mr-3"><i class="fa fa-users mr-1"></i> unknown+ 玩家</span>
+                <span><i class="fa fa-calendar mr-1"></i> 开服unknown年</span>
+              </div>
+            </div>
+            <a href="https://manual.vdrias.cn/rules" class="ml-2 text-primary hover:text-secondary transition-colors">
+              <i class="fa fa-external-link"></i>
+            </a>
+          </div>
+
+          <!-- 友服2 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg flex items-center card-hover">
+            <div class="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mr-4 flex-shrink-0">
+              <i class="fa fa-bolt text-2xl text-yellow-400"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-white mb-1">LunarCraft</h3>
+              <p class="text-gray-300 text-sm mb-2">一个【硬核生存×科技】MOD服务器。服务器管理团队自研MOD/插件，拥有自主版权，致力于提供更优质的定制化服务。拒绝任何商业活动！</p>
+              <p class="text-gray-300 text-sm mb-2">QQ群：895468474</p>
+              <div class="flex items-center text-xs text-gray-400">
+                <span class="mr-3"><i class="fa fa-users mr-1"></i> unknown+ 玩家</span>
+                <span><i class="fa fa-calendar mr-1"></i> 开服unknown年</span>
+              </div>
+            </div>
+            <a href="https://qm.qq.com/q/CIJJqIGjMy" class="ml-2 text-primary hover:text-secondary transition-colors">
+              <i class="fa fa-external-link"></i>
+            </a>
+          </div>
+          
+    </section>
+
+     <!-- 推荐站点 -->
+    <section id="recommendations" class="mb-20 scroll-mt-24 section-wrapper">
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-3xl md:text-4xl font-bold text-white text-shadow flex items-center tooltip" data-tooltip="个人推荐的优质站点">
+            <i class="fa fa-star mr-3 text-primary"></i>推荐站点
+          </h2>
+          <button class="section-toggle p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-chevron-up"></i>
+          </button>
+        </div>
+        
+        <div class="section-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- 推荐站点1 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">哲风壁纸</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">免费4K高清壁纸-电脑背景图片-Mac壁纸网站</p>
+              <a href="https://haowallpaper.com/" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问网站 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+          
+          <!-- 推荐站点2 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">MyFreeMP3</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">歌曲免费下载</p>
+              <a href="https://www.myfreemp3.com.cn/" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问网站 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+          
+          <!-- 推荐站点3 -->
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">白描网页版</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">图片文字提取</p>
+              <a href="https://web.baimiaoapp.com/" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问网站 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 打字雨容器 -->
+<div id="rain-container" class="fixed inset-0 pointer-events-none z-50 hidden"></div>
+
+     <!-- 评论区 -->
+<section id="comments" class="py-12 scroll-mt-24 section-wrapper">
+  <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+    <h2 class="text-3xl font-bold text-white text-shadow mb-8">
+      <i class="fa fa-comments mr-3 text-primary"></i>玩家评论(不可用)
+    </h2>
+    
+    <!-- 评论输入区 -->
+    <div class="mb-8">
+      <textarea id="commentInput" class="w-full glass-effect bg-white/10 dark:bg-gray-800/50 border border-white/20 dark:border-gray-700 rounded-xl p-4 text-white placeholder-gray-400 focus:outline-none focus:border-primary resize-none" rows="4" placeholder="分享你的想法..."></textarea>
+      <div class="mt-4 flex justify-end">
+        <button id="submitComment" class="px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-shadow transition-all transform hover:-translate-y-1">
+          发布评论
+        </button>
+      </div>
+    </div>
+    
+    <!-- 评论列表 -->
+    <div id="commentsList" class="space-y-6">
+      <!-- 评论项示例 -->
+      <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-xl p-5 border border-white/10 dark:border-gray-700">
+        <div class="flex items-start">
+          <img src="images/made by.jpg" alt="用户头像" class="w-10 h-10 rounded-full mr-3">
+          <div class="flex-1">
+            <div class="flex justify-between items-center">
+              <h4 class="font-bold text-white">Eternal_Memory</h4>
+              <span class="text-sm text-gray-400">NaN小时前</span>
+            </div>
+            <p class="mt-2 text-gray-200">hello from Amicora World</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+          <!-- 本网站扩展页 -->
+    <section id="recommendations" class="mb-20 scroll-mt-24 section-wrapper">
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-3xl md:text-4xl font-bold text-white text-shadow flex items-center tooltip" data-tooltip="本网站扩展页，包含了一些本网站的功能">
+            <i class="fa fa-star mr-3 text-primary"></i>本网站扩展页
+          </h2>
+          <button class="section-toggle p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+            <i class="fa fa-chevron-up"></i>
+          </button>
+        </div>
+        
+        <div class="section-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">三体运动模拟</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">模拟三体系统的运动，展示三体系统的运动轨迹和碰撞效果</p>
+              <a href="扩展页/Three_body_motion_simulation.html" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问扩展页 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="section-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">数据可视化工具</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">可视化展示数据，帮助用户更直观地理解数据的含义和趋势</p>
+              <a href="扩展页/DataViz.html" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问扩展页 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+
+          
+<div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+  <div class="flex justify-between items-start mb-4">
+    <h3 class="text-xl font-bold text-white">百宝箱</h3>
+    <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+      <i class="fa fa-chevron-up"></i>
+    </button>
+  </div>
+  <div class="collapse-content">
+    <p class="text-gray-200 mb-3">实用工具、资源下载和攻略技巧集合</p>
+    <a href="treasure-box.html" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+      访问百宝箱 <i class="fa fa-external-link ml-1"></i>
+    </a>
+  </div>
+</div>
+
+
+    
+          
+          <!-- 在index.html或home.html中添加控制台HTML -->
+<div id="consoleContainer" class="fixed bottom-4 right-4 z-50 w-80 max-w-full bg-gray-900 text-green-400 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 transform scale-95 opacity-0">
+  <div class="console-header bg-gray-800 p-2 flex justify-between items-center">
+    <span class="text-sm font-mono">控制台</span>
+    <div class="flex space-x-1">
+      <button id="minimizeConsole" class="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"></button>
+      <button id="closeConsole" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"></button>
+    </div>
+  </div>
+  <div id="consoleOutput" class="h-64 overflow-y-auto p-2 text-sm font-mono space-y-1"></div>
+  <div class="console-input-container p-2 border-t border-gray-700">
+    <input type="text" id="consoleInput" class="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 focus:outline-none focus:border-green-500 text-green-400 text-sm font-mono" placeholder="输入指令...">
+  </div>
+</div>
+
+<!-- 打开控制台的按钮 -->
+<button id="openConsoleBtn" class="fixed bottom-4 right-4 z-40 bg-gray-800 text-green-400 p-2 rounded-full shadow-lg hover:bg-gray-700 transition-colors">
+  <i class="fa fa-terminal"></i>
+</button>
+
+  </main>
+    <!-- 互动猫咪元素 -->
+  <div id="cat-container" class="fixed bottom-6 right-6 z-40 cursor-pointer">
+    <!-- 猫咪图片 -->
+    <div id="cat" class="w-20 h-20 relative">
+      <img src="images/cat.png" alt="可爱的猫" class="w-full h-full object-contain animate-float">
+
+      
+      
+      <!-- 对话框 (默认隐藏) -->
+      <div id="cat-speech" class="hidden absolute -top-32 left-0 right-0 bg-white/90 dark:bg-gray-800/90 rounded-xl p-3 shadow-lg border border-gray-200 dark:border-gray-700 glass-effect">
+        <div class="text-gray-800 dark:text-gray-200 text-sm" id="cat-message"></div>
+        <!-- 对话框小三角 -->
+        <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 页脚 -->
+  <footer class="glass-effect bg-glass dark:bg-glass-dark border-t border-white/10 dark:border-gray-800">
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-2 mb-4">
+            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+              <i class="fa fa-cube text-white text-xl"></i>
+            </div>
+            <span class="text-xl font-bold text-white">Amicora World</span>
+          </div>
+          <p class="text-gray-300 mb-4">一个友好、和谐的我的世界服务器社区，致力于为玩家提供优质的游戏体验。</p>
+        </div>
+        
+        <div>
+          <h4 class="text-white font-bold mb-4">快速链接</h4>
+          <ul class="space-y-2">
+            <li><a href="#about" class="text-gray-300 hover:text-primary transition-colors">关于我们</a></li>
+            <li><a href="#community" class="text-gray-300 hover:text-primary transition-colors">玩家社区</a></li>
+            <li><a href="#news" class="text-gray-300 hover:text-primary transition-colors">新闻动态</a></li>
+            <li><a href="#fun" class="text-gray-300 hover:text-primary transition-colors">活动信息</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-white font-bold mb-4">服务器信息</h4>
+          <ul class="space-y-2">
+            <li class="flex items-center"><i class="fa fa-server text-primary mr-2"></i> <span class="text-gray-300">play.vahiru.xyz</span></li>
+            <li class="flex items-center"><i class="fa fa-clock-o text-primary mr-2"></i> <span class="text-gray-300">0/500 在线</span></li>
+            <li class="flex items-center"><i class="fa fa-gamepad text-primary mr-2"></i> <span class="text-gray-300">1.13~1.21.8 版本</span></li>
+            <li class="flex items-center"><i class="fa fa-users text-primary mr-2"></i> <span class="text-gray-300">QQ群:259378600</span></li>
+          </ul>
+        </div>
+      
+      <div class="border-t border-white/10 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 Amicora World 我的世界服务器. 保留所有权利. 我的世界是Mojang Studios的商标. 本服务器与Mojang无关. 本服务器Amicora World与Amicora无关.</p>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- 返回顶部按钮 -->
+  <button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-primary/80">
+    <i class="fa fa-chevron-up"></i>
+  </button>
+  
+  <!-- JavaScript -->
+  <script>
+    
+    // 文档加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+      // 欢迎语和每日好句
+      updateGreetingAndQuote();
+      
+      // 服务器状态图表
+      initServerStatusChart();
+      
+      // 社区统计图表
+      initCommunityChart();
+      
+      // 卡片折叠功能
+      initCollapseCards();
+      
+      // 移动端菜单
+      initMobileMenu();
+      
+      // 主题切换
+      initThemeToggle();
+      
+      // 背景切换
+      initBackgroundToggle();
+      
+      // 音乐控制
+      initMusicControl();
+      
+      // 返回顶部按钮
+      initBackToTop();
+      
+      // 复制功能
+      initCopyFunction();
+      
+      // 滚动效果
+      initScrollEffects();
+    });
+    
+    // 更新欢迎语和每日好句
+    function updateGreetingAndQuote() {
+      const greetingEl = document.getElementById('greeting');
+      const quoteEl = document.getElementById('dailyQuote');
+      
+      // 根据时间设置欢迎语
+      const hour = new Date().getHours();
+      let greeting;
+      
+      if (hour >= 5 && hour < 10) {
+        greeting = '早上好，新的一天开始了，准备好学习新的知识了吗喵qwq？';
+      } else if (hour >= 10 && hour < 14) {
+        greeting = '中午好，阳光正好，适合出门走走';
+      } else if (hour >= 14 && hour < 18) {
+        greeting = '下午好，精力充沛，一起来建造属于我们的世界吧！';
+      } else if (hour >= 18 && hour < 22) {
+        greeting = '晚上好，夜幕降临，是时候享受片刻宁静了。';
+      } else {
+        greeting = '深夜了，还在奋斗吗？注意休息喵。';
+      }
+      
+      // 每日好句 - 随机选择
+      const quotes = [
+        '菩提本无树，明镜亦非台。',
+        '一花一世界，一叶一菩提。',
+        '道在蝼蚁，在稊稗，在瓦甓，在屎溺。',
+        '海纳百川，有容乃大；壁立千仞，无欲则刚。',
+        '天行健，君子以自强不息。',
+        '地势坤，君子以厚德载物。',
+        '少壮不努力，老大徒伤悲。',
+        '路漫漫其修远兮，吾将上下而求索。',
+        '宝剑锋从磨砺出，梅花香自苦寒来。',
+        '非淡泊无以明志，非宁静无以致远。',
+        "探索未知，创造无限 —— Minecraft 精神",
+        "方块虽小，世界很大",
+        "每一次挖掘都是新的开始",
+        "在像素的世界里，梦想也能成真",
+        "合作建造，乐趣加倍",
+        "红石的奥秘，等待你的发现",
+                "夜晚再黑，也有星光相伴",
+                "从无到有，这就是创造的魅力",
+                "每一个建筑，都是思想的结晶",
+                "冒险不止，探索不停",
+                "山空松子落，幽人应未眠",
+                "落花无言，人淡如菊",
+                "行到水穷处，坐看云起时",
+                "本来无一物，何处惹尘埃",
+                "掬水月在手，弄花香满衣",
+                "松风吹解带，山月照弹琴",
+                "清夜无尘，月色如银",
+                "此心安处是吾乡",
+                "鸟宿池边树，僧敲月下门",
+                "望天空云卷云舒，观庭前花开花落",
+                "心若浮沉，浅笑安然",
+                "人闲桂花落，夜静春山空",
+                "醉后不知天在水，满船清梦压星河",
+                "孤光自照，肝胆皆冰雪",
+                "当时明月在，曾照彩云归",
+                "事若知足心常泰，人到无求品自高",
+                "却顾所来径，苍苍横翠微",
+                "露从今夜白，月是故乡明",
+                "回首向来萧瑟处，也无风雨也无晴",
+                "清风徐来，水波不兴",
+                "醉里枕月听风，梦入清辉满庭",
+                "落花静无言，晚色漫成诗",
+                "小舟从此逝，江海寄余生",
+                "山高水远，万事皆安",
+                "繁华落尽，平淡归真",
+                "星垂夜幕柔，月漫心河静",
+                "一念心清净，处处莲花开",
+                "采菊东篱下，悠然见南山",
+                "掬一捧月光，安吾心所向",
+                "心有山海，静而无边",
+                "明月照窗棂，清风拂心宁",
+                "薄酒可消忧，清景宜慢赏",
+                "心若向暖，安之若素",
+                "回首岁月静，心藏珍珠明",
+                "晚色与心共静，清辉同梦齐飞",
+                "夜深知心静，时闻心音轻",
+                "晚来天渐静，梦枕清辉眠",
+                "非淡泊无以明志，非宁静无以致远",
+                "千般思绪过，静后始见真",
+                "月上梢头静，人约心归宁",
+                "心舟乘静渡，直向彼岸行",
+                "夜有清辉梦有静，心无闲事自安闲",
+                "宠辱不惊，闲看庭前花开花落",
+                "身安不如心安，屋宽不如心宽",
+                "蝉噪林逾静，鸟鸣山更幽",
+                "日暮心花静若蓝，晚色漫染意悠然",
+                "不忘初心，方得始终",
+                "醉后心游清梦海，满船宁静压星河",
+                "愿君心藏宁静，遍历山河皆安",
+                "日子常如新，宁静藏旧忆",
+                "全世界无产者联合起来"
+      ];
+      
+      // 基于日期生成随机索引，确保每天的句子固定
+      const today = new Date();
+      const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+      const randomIndex = dayOfYear % quotes.length;
+      
+      greetingEl.textContent = greeting;
+      quoteEl.textContent = quotes[randomIndex];
+    }
+    
+      // 傲娇猫的语录库
+      const catQuotes = [
+      "哼，看在你这么诚恳的份上，就勉强理你一下吧",
+      "愚蠢的人类，居然敢碰本喵",
+      "要不是看你还有点用，才不会理你呢",
+      "喂，这地方还不错，本喵就暂时住下了",
+      "嗯？有事快说，本喵很忙的",
+      "哼，算你有眼光，知道本喵最可爱",
+      "别碰我！除非你给我小鱼干",
+      "人类真是奇怪的生物，不过...你还算顺眼",
+      "无聊死了，快陪本喵玩",
+      "走开啦，别打扰我睡觉...好吧，就一会儿",
+      "你以为我会很高兴？才没有呢！",
+      "切，这点小事也好意思叫我",
+      "服务器？本喵才不感兴趣呢...不过可以勉强看看",
+      "哼，连只猫都没有的服务器有什么意思",
+      "本喵可不是随便就陪人的，要有诚意才行",
+      "本喵会飞不是很正常的吗(bushi)",
+      "你干嘛啦！",
+      "再戳我咬你哦！",
+      "嗯...舒服是舒服啦",
+      "不许摸太久！",
+      "哼，这次就原谅你了"
+    ];
+
+    // 获取元素
+    const cat = document.getElementById('cat');
+    const catSpeech = document.getElementById('cat-speech');
+    const catMessage = document.getElementById('cat-message');
+
+    // 点击猫咪显示随机语录
+    cat.addEventListener('click', () => {
+      // 随机选择一条语录
+      const randomQuote = catQuotes[Math.floor(Math.random() * catQuotes.length)];
+      catMessage.textContent = randomQuote;
+      
+      // 显示对话框
+      catSpeech.classList.remove('hidden');
+      
+      // 10秒后自动隐藏对话框
+      setTimeout(() => {
+        catSpeech.classList.add('hidden');
+      }, 10000);
+    });
+
+    // 初始化猫咪位置（确保在各种屏幕尺寸下都不会遮挡内容）
+    function adjustCatPosition() {
+      const catContainer = document.getElementById('cat-container');
+      // 在移动设备上稍微调整位置
+      if (window.innerWidth < 768) {
+        catContainer.style.bottom = '4rem';
+        catContainer.style.right = '1rem';
+      } else {
+        catContainer.style.bottom = '6rem';
+        catContainer.style.right = '2rem';
+      }
+    }
+
+    // 初始化时调整位置
+    adjustCatPosition();
+    // 窗口大小改变时重新调整
+    window.addEventListener('resize', adjustCatPosition);
+
+    // 初始化服务器状态图表
+    function initServerStatusChart() {
+      const ctx = document.getElementById('serverStatusChart').getContext('2d');
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+          datasets: [{
+            label: '在线玩家数',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#8B5CF6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // 初始化社区统计图表
+    function initCommunityChart() {
+      const ctx = document.getElementById('communityChart').getContext('2d');
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+          datasets: [{
+            label: '新增玩家',
+            data: [0, 0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(139, 92, 246, 0.7)',
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // 初始化卡片折叠功能
+    function initCollapseCards() {
+      const collapseBtns = document.querySelectorAll('.collapse-btn');
+      
+      collapseBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const content = this.parentElement.nextElementSibling;
+          const icon = this.querySelector('i');
+          
+          if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+          } else {
+            content.style.maxHeight = content.scrollHeight + 'px';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+          }
+        });
+      });
+    }
+    
+    // 初始化移动端菜单
+    function initMobileMenu() {
+      const menuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      
+      menuBtn.addEventListener('click', function() {
+        mobileMenu.classList.toggle('hidden');
+        const icon = this.querySelector('i');
+        if (icon.classList.contains('fa-bars')) {
+          icon.classList.remove('fa-bars');
+          icon.classList.add('fa-times');
+        } else {
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        }
+      });
+      
+      // 移动端菜单项点击后关闭菜单
+      const mobileLinks = mobileMenu.querySelectorAll('a');
+      mobileLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          mobileMenu.classList.add('hidden');
+          const icon = menuBtn.querySelector('i');
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        });
+      });
+    }
+    
+    // 初始化主题切换
+    function initThemeToggle() {
+      const themeToggle = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      const icon = themeToggle.querySelector('i');
+      
+      // 检查本地存储中的主题偏好
+      if (localStorage.getItem('theme') === 'dark' || 
+          (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.classList.add('dark');
+        icon.classList.remove('fa-moon-o');
+        icon.classList.add('fa-sun-o');
+      }
+      
+      // 切换主题
+      themeToggle.addEventListener('click', function() {
+        html.classList.toggle('dark');
+        
+        if (html.classList.contains('dark')) {
+          localStorage.setItem('theme', 'dark');
+          icon.classList.remove('fa-moon-o');
+          icon.classList.add('fa-sun-o');
+        } else {
+          localStorage.setItem('theme', 'light');
+          icon.classList.remove('fa-sun-o');
+          icon.classList.add('fa-moon-o');
+        }
+      });
+    }
+    
+    // 初始化背景切换
+    function initBackgroundToggle() {
+      const bgToggle = document.getElementById('bgToggle');
+      const body = document.body;
+      const icon = bgToggle.querySelector('i');
+      
+      // 检查本地存储中的背景偏好
+      if (localStorage.getItem('background') === 'pure') {
+        body.classList.remove('bg-anime');
+        body.classList.add('bg-pure');
+        icon.classList.remove('fa-image');
+        icon.classList.add('fa-picture-o');
+      }
+      
+      // 切换背景
+      bgToggle.addEventListener('click', function() {
+        body.classList.toggle('bg-anime');
+        body.classList.toggle('bg-pure');
+        
+        if (body.classList.contains('bg-pure')) {
+          localStorage.setItem('background', 'pure');
+          icon.classList.remove('fa-image');
+          icon.classList.add('fa-picture-o');
+        } else {
+          localStorage.setItem('background', 'anime');
+          icon.classList.remove('fa-picture-o');
+          icon.classList.add('fa-image');
+        }
+      });
+    }
+    
+    // 初始化音乐控制
+    function initMusicControl() {
+      const musicToggle = document.getElementById('musicToggle');
+      const bgMusic = document.getElementById('bgMusic');
+      const icon = musicToggle.querySelector('i');
+      
+      // 检查本地存储中的音乐偏好
+      if (localStorage.getItem('music') === 'playing') {
+        bgMusic.play().catch(e => console.log('自动播放失败:', e));
+        icon.classList.remove('fa-music');
+        icon.classList.add('fa-pause');
+      }
+      
+      // 切换音乐播放状态
+      musicToggle.addEventListener('click', function() {
+        if (bgMusic.paused) {
+          bgMusic.play().catch(e => console.log('播放失败:', e));
+          localStorage.setItem('music', 'playing');
+          icon.classList.remove('fa-music');
+          icon.classList.add('fa-pause');
+        } else {
+          bgMusic.pause();
+          localStorage.setItem('music', 'paused');
+          icon.classList.remove('fa-pause');
+          icon.classList.add('fa-music');
+        }
+      });
+    }
+    
+    // 初始化返回顶部按钮
+    function initBackToTop() {
+      const backToTopBtn = document.getElementById('backToTop');
+      
+      window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+          backToTopBtn.classList.remove('opacity-0', 'invisible');
+          backToTopBtn.classList.add('opacity-100', 'visible');
+        } else {
+          backToTopBtn.classList.remove('opacity-100', 'visible');
+          backToTopBtn.classList.add('opacity-0', 'invisible');
+        }
+      });
+      
+      backToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
+    
+        // 折叠面板
+      const collapseBtns = document.querySelectorAll('.collapse-btn');
+      
+      collapseBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const content = btn.parentElement.nextElementSibling;
+          const icon = btn.querySelector('i');
+          
+          content.classList.toggle('hidden');
+          if (content.classList.contains('hidden')) {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+          } else {
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+          }
+        });
+      });
+
+    // 初始化复制功能
+    function initCopyFunction() {
+      // 已经在HTML中通过onclick调用copyToClipboard
+    }
+    
+    // 复制到剪贴板
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        // 显示复制成功提示
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-20 right-4 bg-primary text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all';
+        notification.textContent = '已复制: ' + text;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.opacity = '0';
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 300);
+        }, 2000);
+      });
+    }
+    
+    // 初始化滚动效果
+    function initScrollEffects() {
+      const header = document.querySelector('header');
+      
+      window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 50) {
+          header.classList.add('bg-glass/90', 'dark:bg-glass-dark/90', 'shadow-lg');
+          header.classList.remove('bg-transparent');
+        } else {
+          header.classList.remove('bg-glass/90', 'dark:bg-glass-dark/90', 'shadow-lg');
+          header.classList.add('bg-transparent');
+        }
+      });
+    }
+
+        // 检查用户登录状态，显示文章管理功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+            document.getElementById('articleActions').style.display = 'block';
+            
+            // 发布文章按钮点击事件
+            document.getElementById('addArticleBtn').addEventListener('click', function() {
+                document.getElementById('articleModal').style.display = 'flex';
+            });
+            
+            // 关闭模态框
+            document.getElementById('closeModalBtn').addEventListener('click', function() {
+                document.getElementById('articleModal').style.display = 'none';
+            });
+            
+            // 提交文章
+            document.getElementById('articleForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const title = document.getElementById('articleTitle').value;
+                const content = document.getElementById('articleContent').value;
+                
+                // 保存文章到用户数据
+                const article = {
+                    id: Date.now(),
+                    title: title,
+                    excerpt: content.substring(0, 100) + '...',
+                    content: content,
+                    date: new Date().toLocaleString()
+                };
+                
+                user.articles = user.articles || [];
+                user.articles.push(article);
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                // 刷新文章列表
+                addArticleToNewsSection(article);
+                
+                // 关闭模态框
+                document.getElementById('articleModal').style.display = 'none';
+                this.reset();
+                
+                alert('文章发布成功！');
+            });
+        }
+    });
+    
+    // 添加文章到新闻区域
+    function addArticleToNewsSection(article) {
+        const articlesContainer = document.querySelector('#news .grid');
+        const articleCard = document.createElement('div');
+        articleCard.className = 'glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl overflow-hidden border border-white/10 dark:border-gray-700 shadow-lg card-hover';
+        articleCard.innerHTML = `
+            <div class="p-5">
+                <div class="flex items-center text-sm text-gray-300 mb-2">
+                    <i class="fa fa-calendar-o mr-1"></i> ${article.date}
+                    <span class="mx-2">•</span>
+                    <i class="fa fa-user-o mr-1"></i> ${JSON.parse(localStorage.getItem('user')).username}
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">${article.title}</h3>
+                <p class="text-gray-300 mb-4 line-clamp-3">${article.excerpt}</p>
+                <div class="flex gap-2">
+                    <a href="#" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                        阅读更多 <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                    <button class="text-gray-400 hover:text-white transition-colors" onclick="deleteArticle(${article.id})">
+                        <i class="fa fa-trash"></i> 删除
+                    </button>
+                    <button class="text-gray-400 hover:text-white transition-colors" onclick="collectArticle(${article.id})">
+                        <i class="fa fa-bookmark"></i> 收藏
+                    </button>
+                </div>
+            </div>
+        `;
+        articlesContainer.prepend(articleCard);
+    }
+    
+    // 删除文章函数
+    function deleteArticle(articleId) {
+        if (confirm('确定要删除这篇文章吗？')) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            user.articles = user.articles.filter(article => article.id !== articleId);
+            localStorage.setItem('user', JSON.stringify(user));
+            location.reload(); // 简单刷新页面
+        }
+    }
+    
+    // 收藏文章函数
+    function collectArticle(articleId) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const article = user.articles.find(a => a.id === articleId);
+        
+        if (article) {
+            user.collections = user.collections || [];
+            user.collections.push(article);
+            localStorage.setItem('user', JSON.stringify(user));
+            alert('收藏成功！');
+        }
+    }
+
+    // 图片预览功能
+document.getElementById('articleImage').addEventListener('change', function(e) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    
+    if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '300px';
+            img.style.borderRadius = '4px';
+            preview.appendChild(img);
+        }
+        
+        reader.readAsDataURL(this.files[0]);
+    }
+});
+
+// 修改文章保存逻辑，添加图片处理
+document.getElementById('articleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const title = document.getElementById('articleTitle').value;
+    const content = document.getElementById('articleContent').value;
+    const imageInput = document.getElementById('articleImage');
+    
+    // 处理图片
+    let imageUrl = '';
+    if (imageInput.files && imageInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imageUrl = e.target.result;
+            saveArticle(title, content, imageUrl);
+        }
+        reader.readAsDataURL(imageInput.files[0]);
+    } else {
+        saveArticle(title, content, imageUrl);
+    }
+});
+
+function saveArticle(title, content, imageUrl) {
+    const article = {
+        id: Date.now(),
+        title: title,
+        excerpt: content.substring(0, 100) + '...',
+        content: content,
+        imageUrl: imageUrl, // 保存图片URL
+        date: new Date().toLocaleString()
+    };
+    
+    // 保存到localStorage的逻辑...
+    const user = JSON.parse(localStorage.getItem('user'));
+    user.articles = user.articles || [];
+    user.articles.push(article);
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    // 刷新文章列表
+    addArticleToNewsSection(article);
+    
+    // 关闭模态框并重置表单
+    document.getElementById('articleModal').style.display = 'none';
+    document.getElementById('articleForm').reset();
+    document.getElementById('imagePreview').innerHTML = '';
+    
+    alert('文章发布成功！');
+}
+
+    // 修改home.html中保存文章的逻辑，确保文章持久化存储
+// 在用户登录时加载所有文章到页面
+document.addEventListener('DOMContentLoaded', function() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+        // 加载已保存的文章
+        if (user.articles && user.articles.length > 0) {
+            user.articles.forEach(article => {
+                addArticleToNewsSection(article);
+            });
+        }
+    }
+});
+
+    // 创建console.js文件并在页面中引入
+document.addEventListener('DOMContentLoaded', function() {
+  const consoleContainer = document.getElementById('consoleContainer');
+  const consoleOutput = document.getElementById('consoleOutput');
+  const consoleInput = document.getElementById('consoleInput');
+  const openConsoleBtn = document.getElementById('openConsoleBtn');
+  const closeConsoleBtn = document.getElementById('closeConsole');
+  const minimizeConsoleBtn = document.getElementById('minimizeConsole');
+  
+  // 存储历史命令
+  const commandHistory = [];
+  let historyIndex = -1;
+  
+  // 打开控制台
+  openConsoleBtn.addEventListener('click', function() {
+    consoleContainer.classList.add('active');
+    consoleContainer.classList.remove('minimized');
+    consoleInput.focus();
+    logMessage('系统', '控制台已启动，输入 help 查看可用命令', 'system');
+  });
+  
+  // 关闭控制台
+  closeConsoleBtn.addEventListener('click', function() {
+    consoleContainer.classList.remove('active', 'minimized');
+  });
+  
+  // 最小化控制台
+  minimizeConsoleBtn.addEventListener('click', function() {
+    consoleContainer.classList.toggle('minimized');
+    if (!consoleContainer.classList.contains('minimized')) {
+      consoleInput.focus();
+    }
+  });
+  
+  // 输出日志信息
+  function logMessage(sender, message, type = 'default') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.className = type;
+    logEntry.innerHTML = `<span>[${timestamp}] ${sender}:</span> ${message}`;
+    consoleOutput.appendChild(logEntry);
+    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  }
+  
+  // 执行命令
+  function executeCommand(command) {
+    if (!command.trim()) return;
+    
+    // 添加到历史记录
+    commandHistory.push(command);
+    historyIndex = commandHistory.length;
+    
+    const parts = command.trim().split(' ');
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+    
+    // 记录用户输入
+    logMessage('你', command);
+    
+    // 命令处理
+    switch(cmd) {
+      case 'help':
+        logMessage('系统', '可用命令: help, clear, user, server, tp, say, weather, time', 'info');
+        break;
+      case 'clear':
+        consoleOutput.innerHTML = '';
+        logMessage('系统', '控制台已清空', 'info');
+        break;
+      case 'user':
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.username) {
+          logMessage('系统', `当前用户: ${user.username} | 管理员: ${user.isAdmin ? '是' : '否'}`, 'info');
+        } else {
+          logMessage('系统', '未登录，请先登录', 'error');
+        }
+        break;
+      case 'server':
+        logMessage('系统', '服务器地址: play.vahiru.xyz | 端口: 20721', 'info');
+        break;
+      case 'tp':
+        if (args.length < 1) {
+          logMessage('系统', '用法: tp [玩家名]', 'error');
+        } else {
+          logMessage('系统', `已发送传送请求至 ${args[0]}`, 'info');
+        }
+        break;
+      case 'say':
+        if (args.length < 1) {
+          logMessage('系统', '用法: say [消息]', 'error');
+        } else {
+          logMessage('广播', args.join(' '), 'system');
+        }
+        break;
+      case 'weather':
+        const weather = args[0] || 'clear';
+        logMessage('系统', `天气已设置为: ${weather}`, 'info');
+        break;
+      case 'time':
+        const time = args[0] || 'day';
+        logMessage('系统', `时间已设置为: ${time}`, 'info');
+        break;
+      default:
+        logMessage('系统', `未知命令: ${cmd}，输入 help 查看可用命令`, 'error');
+    }
+  }
+  
+  // 处理输入
+  consoleInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const command = this.value;
+      executeCommand(command);
+      this.value = '';
+    } else if (e.key === 'ArrowUp') {
+      // 上方向键查看历史命令
+      e.preventDefault();
+      if (historyIndex > 0) {
+        historyIndex--;
+        this.value = commandHistory[historyIndex] || '';
+      }
+    } else if (e.key === 'ArrowDown') {
+      // 下方向键查看历史命令
+      e.preventDefault();
+      if (historyIndex < commandHistory.length - 1) {
+        historyIndex++;
+        this.value = commandHistory[historyIndex] || '';
+      } else {
+        historyIndex = commandHistory.length;
+        this.value = '';
+      }
+    }
+  });
+  
+  // 初始日志
+  logMessage('系统', '控制台就绪，输入 help 查看命令列表', 'system');
+});
+
+// 创建search.js文件并在页面中引入
+document.addEventListener('DOMContentLoaded', function() {
+  // 获取DOM元素
+  const searchInput = document.getElementById('searchInput');
+  const searchResults = document.getElementById('searchResults');
+  const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+  const mobileSearchModal = document.getElementById('mobileSearchModal');
+  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  const mobileSearchResults = document.getElementById('mobileSearchResults');
+  const closeSearchModal = document.getElementById('closeSearchModal');
+  
+  // 搜索数据源 - 实际应用中可能从API获取
+  function getSearchSources() {
+    // 获取本地存储的用户数据
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // 模拟其他用户数据
+    const mockUsers = [
+      { id: 1, username: 'Eternal_Memory&XingGreen', avatar: 'images/made by.jpg', profile: { interests: ['本网站的开发者', 'Minecraft'] } },
+      { id: 2, username: 'doubao', avatar: 'URL', profile: { interests: ['网站开发协助', ''] } },
+      { id: 3, username: 'Ryan', avatar: 'https://picsum.photos/id/3/200', profile: { interests: ['游戏', '编程'] } }
+    ];
+    
+    // 模拟文章数据
+    const mockArticles = currentUser.articles || [
+      { id: 1, title: '我的世界建筑技巧分享', author: 'Alex', content: '在这篇文章中，我将分享一些我的世界建筑技巧...' },
+      { id: 2, title: '探索红石电路的奥秘', author: 'Ryan', content: '红石电路是我的世界中非常有趣的一部分...' },
+      { id: 3, title: '如何拍摄出震撼的游戏截图', author: 'Emma', content: '游戏截图也能拍出专业水准，以下是我的经验...' }
+    ];
+    
+    // 兴趣标签数据
+    const interests = [
+      ...(currentUser.profile?.interests || []),
+      '摄影', '旅行', '音乐', '绘画', '游戏', '编程', '我的世界', '红石', '建筑', '生存'
+    ];
+    
+    return {
+      users: [currentUser, ...mockUsers],
+      articles: mockArticles,
+      interests: [...new Set(interests)] // 去重
+    };
+  }
+  
+  // 执行搜索
+  function performSearch(query) {
+    if (!query.trim()) return { users: [], articles: [], interests: [] };
+    
+    const sources = getSearchSources();
+    const lowerQuery = query.toLowerCase().trim();
+    
+    // 搜索用户
+    const userResults = sources.users
+      .filter(user => user.username && user.username.toLowerCase().includes(lowerQuery))
+      .slice(0, 3);
+      
+    // 搜索文章
+    const articleResults = sources.articles
+      .filter(article => 
+        article.title.toLowerCase().includes(lowerQuery) || 
+        article.content.toLowerCase().includes(lowerQuery)
+      )
+      .slice(0, 3);
+      
+    // 搜索兴趣
+    const interestResults = sources.interests
+      .filter(interest => interest.toLowerCase().includes(lowerQuery))
+      .slice(0, 3);
+      
+    return { users: userResults, articles: articleResults, interests: interestResults };
+  }
+  
+  // 渲染搜索结果
+  function renderResults(results, container) {
+    container.innerHTML = '';
+    
+    // 如果没有结果
+    if (results.users.length === 0 && results.articles.length === 0 && results.interests.length === 0) {
+      container.innerHTML = `
+        <div class="search-no-results">
+          <i class="fa fa-search"></i>
+          <p>我没写好这部分(bushi)</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // 渲染用户结果
+    if (results.users.length > 0) {
+      container.innerHTML += '<div class="search-results-header">用户</div>';
+      results.users.forEach(user => {
+        container.innerHTML += `
+          <div class="search-result-item" onclick="navigateToProfile(${user.id})">
+            <img src="${user.profile?.avatar || '0_001.jpg'}" class="avatar" alt="${user.username}">
+            <div class="result-info">
+              <div class="result-title">${user.username}</div>
+              <div class="result-type">用户</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+    
+    // 渲染文章结果
+    if (results.articles.length > 0) {
+      container.innerHTML += '<div class="search-results-header">文章</div>';
+      results.articles.forEach(article => {
+        container.innerHTML += `
+          <div class="search-result-item" onclick="viewArticle(${article.id})">
+            <div class="result-info">
+              <div class="result-title">${article.title}</div>
+              <div class="result-type">作者: ${article.author}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+    
+    // 渲染兴趣结果
+    if (results.interests.length > 0) {
+      container.innerHTML += '<div class="search-results-header">兴趣</div>';
+      results.interests.forEach(interest => {
+        container.innerHTML += `
+          <div class="search-result-item" onclick="searchByInterest('${interest}')">
+            <div class="result-info">
+              <div class="result-title">${interest}</div>
+              <div class="result-type">兴趣标签</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+  }
+  
+  // 搜索输入事件监听
+  function setupSearchListener(input, resultsContainer) {
+    input.addEventListener('input', function() {
+      const query = this.value;
+      if (query.length < 1) {
+        resultsContainer.classList.add('hidden');
+        return;
+      }
+      
+      const results = performSearch(query);
+      renderResults(results, resultsContainer);
+      resultsContainer.classList.remove('hidden');
+    });
+    
+    // 点击外部关闭搜索结果
+    document.addEventListener('click', function(e) {
+      if (!input.contains(e.target) && !resultsContainer.contains(e.target)) {
+        resultsContainer.classList.add('hidden');
+      }
+    });
+    
+    // 按ESC键关闭搜索结果
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        resultsContainer.classList.add('hidden');
+        input.blur();
+      }
+    });
+  }
+  
+  // 初始化搜索功能
+  setupSearchListener(searchInput, searchResults);
+  setupSearchListener(mobileSearchInput, mobileSearchResults);
+  
+  // 移动端搜索模态框控制
+  mobileSearchBtn.addEventListener('click', function() {
+    mobileSearchModal.classList.add('active');
+    setTimeout(() => {
+      mobileSearchInput.focus();
+    }, 300);
+  });
+  
+  closeSearchModal.addEventListener('click', function() {
+    mobileSearchModal.classList.remove('active');
+  });
+  
+  mobileSearchModal.addEventListener('click', function(e) {
+    if (e.target === mobileSearchModal) {
+      mobileSearchModal.classList.remove('active');
+    }
+  });
+  
+  // 全局导航函数
+  window.navigateToProfile = function(userId) {
+    // 实际应用中跳转到用户资料页
+    showNotification(`导航到用户 ${userId} 的资料页`);
+    mobileSearchModal.classList.remove('active');
+  };
+  
+  window.viewArticle = function(articleId) {
+    // 实际应用中跳转到文章详情页
+    showNotification(`查看文章 ${articleId}`);
+    mobileSearchModal.classList.remove('active');
+  };
+  
+  window.searchByInterest = function(interest) {
+    // 实际应用中执行兴趣搜索
+    showNotification(`搜索包含 ${interest} 标签的内容`);
+    mobileSearchModal.classList.remove('active');
+  };
+});
+  </script>
+
+  <script>
+// 评论功能JS
+document.addEventListener('DOMContentLoaded', function() {
+  const commentInput = document.getElementById('commentInput');
+  const submitComment = document.getElementById('submitComment');
+  const commentsList = document.getElementById('commentsList');
+  
+  submitComment.addEventListener('click', function() {
+    const commentText = commentInput.value.trim();
+    if (!commentText) return;
+    
+    // 创建新评论元素
+    const now = new Date();
+    const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const newComment = document.createElement('div');
+    newComment.className = 'glass-effect bg-white/5 dark:bg-gray-800/30 rounded-xl p-5 border border-white/10 dark:border-gray-700';
+    newComment.innerHTML = `
+      <div class="flex items-start">
+        <img src="https://picsum.photos/seed/user${Math.floor(Math.random() * 100)}/50/50" alt="用户头像" class="w-10 h-10 rounded-full mr-3">
+        <div class="flex-1">
+          <div class="flex justify-between items-center">
+            <h4 class="font-bold text-white">访客玩家</h4>
+            <span class="text-sm text-gray-400">${timeString}</span>
+          </div>
+          <p class="mt-2 text-gray-200">${commentText}</p>
+        </div>
+      </div>
+    `;
+    
+    // 添加到评论列表顶部
+    commentsList.insertBefore(newComment, commentsList.firstChild);
+    
+    // 清空输入框
+    commentInput.value = '';
+    
+    // 添加动画效果
+    newComment.classList.add('animate-fade-in');
+  });
+  
+  // 支持按Enter发布评论
+  commentInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitComment.click();
+    }
+  });
+});
+</script>
+
+<script>// 一键内容隐藏功能
+function initContentHide() {
+  const hideContentBtn = document.getElementById('hideContentBtn');
+  const mainContent = document.querySelector('main');
+  const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
+  const consoleContainer = document.getElementById('consoleContainer');
+  const catContainer = document.getElementById('cat-container');
+  const openConsoleBtn = document.getElementById('openConsoleBtn');
+  
+  let contentHidden = false;
+  
+  hideContentBtn.addEventListener('click', function() {
+    contentHidden = !contentHidden;
+    
+    if (contentHidden) {
+      // 隐藏内容
+      mainContent.classList.add('hidden');
+      footer.classList.add('hidden');
+      consoleContainer.classList.add('hidden');
+      openConsoleBtn.classList.add('hidden');
+      catContainer.classList.add('hidden');
+      
+      // 更改按钮图标
+      hideContentBtn.innerHTML = '<i class="fa fa-eye-slash"></i>';
+      
+      // 添加提示
+      const notification = document.createElement('div');
+      notification.id = 'hideNotification';
+      notification.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center glass-effect bg-glass dark:bg-glass-dark px-6 py-4 rounded-xl';
+      notification.innerHTML = `
+        <i class="fa fa-info-circle text-primary text-2xl mb-2 block"></i>
+        <p>内容已隐藏，点击眼睛图标恢复显示</p>
+      `;
+      document.body.appendChild(notification);
+    } else {
+      
+      // 显示内容
+      mainContent.classList.remove('hidden');
+      footer.classList.remove('hidden');
+      openConsoleBtn.classList.remove('hidden');
+      catContainer.classList.remove('hidden');
+      
+      // 更改按钮图标
+      hideContentBtn.innerHTML = '<i class="fa fa-eye"></i>';
+      
+      // 移除提示
+      const notification = document.getElementById('hideNotification');
+      if (notification) {
+        notification.remove();
+      }
+    }
+  });
+}
+
+// 在页面初始化时调用
+document.addEventListener('DOMContentLoaded', function() {
+  // 其他初始化函数...
+  initContentHide();
+});
+</script>
+
+
+
+<script>
+// 音乐播放控制
+function initMusicControl() {
+  const bgMusic = document.getElementById('bgMusic');
+  const musicToggle = document.getElementById('musicToggle');
+  const musicPlayer = document.getElementById('musicPlayer');
+  const closeMusicPlayer = document.getElementById('closeMusicPlayer');
+  const toggleMusic = document.getElementById('toggleMusic');
+  const prevMusic = document.getElementById('prevMusic');
+  const nextMusic = document.getElementById('nextMusic');
+  const currentMusic = document.getElementById('currentMusic');
+  const musicProgress = document.getElementById('musicProgress');
+  const useMusicAPI = document.getElementById('useMusicAPI');
+  const musicItems = document.querySelectorAll('.music-item');
+  
+  // 音乐列表
+  const musicList = [
+    { title: '暮春', src: 'mp3/暮春.mp3' },
+    { title: '星相运轨', src: 'mp3/星相运轨.mp3' },
+  ];
+  
+  let currentMusicIndex = 0;
+  let isUsingAPI = false;
+  
+  // 显示/隐藏音乐播放器
+  musicToggle.addEventListener('click', function() {
+    musicPlayer.classList.toggle('hidden');
+  });
+  
+  closeMusicPlayer.addEventListener('click', function() {
+    musicPlayer.classList.add('hidden');
+  });
+  
+  // 播放/暂停切换
+  toggleMusic.addEventListener('click', function() {
+    if (bgMusic.paused) {
+      bgMusic.play();
+      toggleMusic.innerHTML = '<i class="fa fa-pause"></i>';
+      musicToggle.innerHTML = '<i class="fa fa-volume-up"></i><span class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center">4</span>';
+    } else {
+      bgMusic.pause();
+      toggleMusic.innerHTML = '<i class="fa fa-play"></i>';
+      musicToggle.innerHTML = '<i class="fa fa-music"></i><span class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center">4</span>';
+    }
+  });
+  
+  // 上一首
+  prevMusic.addEventListener('click', function() {
+    currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+  
+  // 下一首
+  nextMusic.addEventListener('click', function() {
+    currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+  
+  // 加载并播放音乐
+  function loadMusic(index) {
+    if (isUsingAPI) {
+      // 这里可以实现API音乐加载逻辑
+      alert('已切换到网络音乐模式，正在播放随机音乐');
+      return;
+    }
+    
+    const music = musicList[index];
+    bgMusic.src = music.src;
+    currentMusic.textContent = music.title;
+    bgMusic.play();
+    
+    // 更新UI
+    toggleMusic.innerHTML = '<i class="fa fa-pause"></i>';
+    musicToggle.innerHTML = '<i class="fa fa-volume-up"></i><span class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center">4</span>';
+    
+    // 更新播放列表选中状态
+    musicItems.forEach((item, i) => {
+      if (i === index) {
+        item.classList.add('bg-white/10');
+        item.querySelector('i').className = 'fa fa-music text-primary mr-2';
+        item.querySelector('span').className = 'text-white truncate';
+      } else {
+        item.classList.remove('bg-white/10');
+        item.querySelector('i').className = 'fa fa-music text-white/70 mr-2';
+        item.querySelector('span').className = 'text-white/80 truncate';
+      }
+    });
+  }
+  
+  // 点击播放列表项
+  musicItems.forEach((item, index) => {
+    item.addEventListener('click', function() {
+      currentMusicIndex = index;
+      loadMusic(index);
+    });
+  });
+  
+  // 更新进度条
+  bgMusic.addEventListener('timeupdate', function() {
+    const progress = (bgMusic.currentTime / bgMusic.duration) * 100;
+    musicProgress.style.width = `${progress}%`;
+  });
+  
+  // 切换API模式
+  useMusicAPI.addEventListener('click', function() {
+    isUsingAPI = !isUsingAPI;
+    if (isUsingAPI) {
+      useMusicAPI.innerHTML = '<i class="fa fa-music mr-1"></i> 使用本地音乐';
+      useMusicAPI.classList.add('bg-secondary/20');
+      useMusicAPI.classList.remove('bg-white/10');
+      
+      // 这里可以实现调用音乐API的逻辑
+      alert('已切换到网络音乐模式，将播放推荐音乐');
+    } else {
+      useMusicAPI.innerHTML = '<i class="fa fa-random mr-1"></i> 使用网络音乐API';
+      useMusicAPI.classList.remove('bg-secondary/20');
+      useMusicAPI.classList.add('bg-white/10');
+      
+      // 切换回本地音乐
+      loadMusic(currentMusicIndex);
+    }
+  });
+}
+
+// 猫耳光标触发(例如点击特定区域5次)
+let easterEggCount = 0;
+const catElement = document.getElementById('cat');
+
+catElement.addEventListener('click', function() {
+  easterEggCount++;
+  if (easterEggCount >= 5) {
+    document.body.classList.add('cat-cursor');
+    // 30秒后恢复默认光标
+    setTimeout(() => {
+      document.body.classList.remove('cat-cursor');
+      easterEggCount = 0;
+    }, 30000);
+  }
+});
+
+// 打字雨功能
+function startRainEffect() {
+  const container = document.getElementById('rain-container');
+  container.classList.remove('hidden');
+  
+  // 创建字符
+  function createRainChar() {
+    if (!container.classList.contains('hidden')) {
+      const char = document.createElement('div');
+      const text = String.fromCharCode(Math.floor(Math.random() * 93) + 33);
+      char.textContent = text;
+      char.className = 'text-green-500/70 text-sm absolute';
+      char.style.left = `${Math.random() * 100}vw`;
+      char.style.top = '0';
+      char.style.animation = `fall ${Math.random() * 3 + 2}s linear`;
+      
+      container.appendChild(char);
+      
+      // 动画结束后移除
+      setTimeout(() => {
+        char.remove();
+      }, 5000);
+      
+      // 继续创建
+      requestAnimationFrame(createRainChar);
+    }
+  }
+  
+  // 添加动画样式
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fall {
+      to {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // 开始下雨
+  createRainChar();
+}
+
+// 触发方式(例如按特定按键)
+document.addEventListener('keydown', (e) => {
+  // 按Shift+R触发
+  if (e.shiftKey && e.key === 'R') {
+    startRainEffect();
+  }
+  // 按ESC关闭
+  if (e.key === 'Escape') {
+    document.getElementById('rain-container').classList.add('hidden');
+  }
+});
+</script>
+
+
+</body>
+</html>

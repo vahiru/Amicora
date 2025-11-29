@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三体运动模拟</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8B5CF6',
+            secondary: '#3B82F6',
+            dark: '#1E293B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+    }
+  </style>
+  
+  <style>
+    body {
+      overflow: hidden;
+      background-color: #0F172A;
+    }
+    #simulationCanvas {
+      display: block;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #8B5CF6;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="font-sans text-white">
+  <div class="relative w-full h-screen">
+    <!-- 模拟画布 -->
+    <canvas id="simulationCanvas" class="absolute inset-0 w-full h-full"></canvas>
+    
+    <!-- 控制面板 -->
+    <div class="absolute top-4 right-4 w-72 glass-effect bg-dark/60 rounded-xl p-5 border border-white/10 shadow-lg z-10">
+      <h2 class="text-xl font-bold mb-4 flex items-center">
+        <i class="fa fa-cubes text-primary mr-2"></i>三体运动模拟
+      </h2>
+      
+      <div class="space-y-5">
+        <!-- 控制按钮 -->
+        <div class="flex gap-2">
+          <button id="startBtn" class="flex-1 bg-primary hover:bg-primary/80 text-white py-2 px-4 rounded-lg transition-colors">
+            <i class="fa fa-play mr-1"></i> 开始
+          </button>
+          <button id="pauseBtn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg transition-colors">
+            <i class="fa fa-pause mr-1"></i> 暂停
+          </button>
+          <button id="resetBtn" class="flex-1 bg-red-500 hover:bg-red-400 text-white py-2 px-4 rounded-lg transition-colors">
+            <i class="fa fa-refresh mr-1"></i> 重置
+          </button>
+        </div>
+        
+        <!-- 速度控制 -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">模拟速度</label>
+          <input type="range" id="speedSlider" min="0.1" max="5" step="0.1" value="1" class="slider w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+          <div class="flex justify-between text-xs text-gray-400 mt-1">
+            <span>慢</span>
+            <span id="speedValue">1x</span>
+            <span>快</span>
+          </div>
+        </div>
+        
+        <!-- 质量控制 -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">星球质量</label>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>星球 1</span>
+                <span id="mass1Value">1000</span>
+              </div>
+              <input type="range" id="mass1Slider" min="100" max="5000" step="100" value="1000" class="slider w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>星球 2</span>
+                <span id="mass2Value">1000</span>
+              </div>
+              <input type="range" id="mass2Slider" min="100" max="5000" step="100" value="1000" class="slider w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>星球 3</span>
+                <span id="mass3Value">1000</span>
+              </div>
+              <input type="range" id="mass3Slider" min="100" max="5000" step="100" value="1000" class="slider w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+          </div>
+        </div>
+        
+        <!-- 轨迹显示 -->
+        <div class="flex items-center">
+          <input type="checkbox" id="showTrail" checked class="mr-2 h-4 w-4 text-primary">
+          <label for="showTrail" class="text-sm">显示轨迹</label>
+        </div>
+        
+        <!-- 轨迹长度 -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">轨迹长度</label>
+          <input type="range" id="trailLength" min="10" max="500" step="10" value="100" class="slider w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+        </div>
+      </div>
+    </div>
+    
+    <!-- 信息面板 -->
+    <div class="absolute bottom-4 left-4 glass-effect bg-dark/60 rounded-xl p-4 border border-white/10 shadow-lg z-10">
+      <div class="text-sm">
+        <p>三体问题是指三个质量、初始位置和初始速度都是任意的可视为质点的天体，在相互之间万有引力的作用下的运动规律问题。</p>
+        <p class="mt-2 text-gray-400">由于其运动方程无法用解析方法求解，这里使用数值方法进行近似模拟。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 三体运动模拟核心代码
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('simulationCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // 设置画布尺寸
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      
+      // 物理常量
+      const G = 100; // 引力常量（放大以便观察）
+      let timeStep = 0.01; // 时间步长
+      
+      // 三体对象
+      let bodies = [
+        {
+          mass: 1000,
+          x: canvas.width * 0.3,
+          y: canvas.height / 2,
+          vx: 0,
+          vy: 5,
+          radius: 15,
+          color: '#8B5CF6', // 紫色
+          trail: []
+        },
+        {
+          mass: 1000,
+          x: canvas.width * 0.5,
+          y: canvas.height / 2,
+          vx: 0,
+          vy: -5,
+          radius: 15,
+          color: '#3B82F6', // 蓝色
+          trail: []
+        },
+        {
+          mass: 1000,
+          x: canvas.width * 0.7,
+          y: canvas.height / 2,
+          vx: 0,
+          vy: 0,
+          radius: 15,
+          color: '#EC4899', // 粉色
+          trail: []
+        }
+      ];
+      
+      // 模拟状态
+      let isRunning = true;
+      let trailLength = 100;
+      let showTrail = true;
+      
+      // 计算引力
+      function calculateGravity(bodyA, bodyB) {
+        const dx = bodyB.x - bodyA.x;
+        const dy = bodyB.y - bodyA.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 避免除以零
+        if (distance < bodyA.radius + bodyB.radius) {
+          return { fx: 0, fy: 0 };
+        }
+        
+        // 万有引力公式 F = G * m1 * m2 / r²
+        const force = (G * bodyA.mass * bodyB.mass) / (distance * distance);
+        const angle = Math.atan2(dy, dx);
+        
+        return {
+          fx: force * Math.cos(angle),
+          fy: force * Math.sin(angle)
+        };
+      }
+      
+      // 更新位置和速度
+      function updateBodies() {
+        if (!isRunning) return;
+        
+        // 计算每个天体受到的力
+        const forces = bodies.map(() => ({ fx: 0, fy: 0 }));
+        
+        for (let i = 0; i < bodies.length; i++) {
+          for (let j = i + 1; j < bodies.length; j++) {
+            const gravity = calculateGravity(bodies[i], bodies[j]);
+            
+            // 力是相互的
+            forces[i].fx += gravity.fx;
+            forces[i].fy += gravity.fy;
+            forces[j].fx -= gravity.fx;
+            forces[j].fy -= gravity.fy;
+          }
+        }
+        
+        // 更新速度和位置
+        bodies.forEach((body, index) => {
+          // F = ma => a = F/m
+          const ax = forces[index].fx / body.mass;
+          const ay = forces[index].fy / body.mass;
+          
+          // 更新速度
+          body.vx += ax * timeStep;
+          body.vy += ay * timeStep;
+          
+          // 更新位置
+          body.x += body.vx * timeStep;
+          body.y += body.vy * timeStep;
+          
+          // 边界处理 - 反弹
+          if (body.x < body.radius || body.x > canvas.width - body.radius) {
+            body.vx = -body.vx * 0.95; // 能量损失
+            body.x = Math.max(body.radius, Math.min(canvas.width - body.radius, body.x));
+          }
+          
+          if (body.y < body.radius || body.y > canvas.height - body.radius) {
+            body.vy = -body.vy * 0.95; // 能量损失
+            body.y = Math.max(body.radius, Math.min(canvas.height - body.radius, body.y));
+          }
+          
+          // 记录轨迹
+          body.trail.push({ x: body.x, y: body.y });
+          if (body.trail.length > trailLength) {
+            body.trail.shift();
+          }
+        });
+      }
+      
+      // 绘制场景
+      function draw() {
+        // 清空画布
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.1)'; // 半透明背景，产生轨迹渐变消失效果
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 绘制轨迹
+        if (showTrail) {
+          bodies.forEach(body => {
+            if (body.trail.length < 2) return;
+            
+            ctx.beginPath();
+            ctx.moveTo(body.trail[0].x, body.trail[0].y);
+            
+            for (let i = 1; i < body.trail.length; i++) {
+              ctx.lineTo(body.trail[i].x, body.trail[i].y);
+            }
+            
+            ctx.strokeStyle = `${body.color}40`; // 带透明度
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          });
+        }
+        
+        // 绘制天体
+        bodies.forEach(body => {
+          ctx.beginPath();
+          ctx.arc(body.x, body.y, body.radius, 0, Math.PI * 2);
+          ctx.fillStyle = body.color;
+          ctx.fill();
+          
+          // 绘制光晕
+          ctx.beginPath();
+          ctx.arc(body.x, body.y, body.radius * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = `${body.color}30`;
+          ctx.fill();
+        });
+      }
+      
+      // 动画循环
+      function animate() {
+        updateBodies();
+        draw();
+        requestAnimationFrame(animate);
+      }
+      
+      // 开始动画
+      animate();
+      
+      // 控制面板事件
+      document.getElementById('startBtn').addEventListener('click', () => {
+        isRunning = true;
+      });
+      
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = false;
+      });
+      
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        // 重置三体位置和速度
+        bodies = [
+          {
+            mass: parseFloat(document.getElementById('mass1Slider').value),
+            x: canvas.width * 0.3,
+            y: canvas.height / 2,
+            vx: 0,
+            vy: 5,
+            radius: 15,
+            color: '#8B5CF6',
+            trail: []
+          },
+          {
+            mass: parseFloat(document.getElementById('mass2Slider').value),
+            x: canvas.width * 0.5,
+            y: canvas.height / 2,
+            vx: 0,
+            vy: -5,
+            radius: 15,
+            color: '#3B82F6',
+            trail: []
+          },
+          {
+            mass: parseFloat(document.getElementById('mass3Slider').value),
+            x: canvas.width * 0.7,
+            y: canvas.height / 2,
+            vx: 0,
+            vy: 0,
+            radius: 15,
+            color: '#EC4899',
+            trail: []
+          }
+        ];
+      });
+      
+      // 速度控制
+      const speedSlider = document.getElementById('speedSlider');
+      const speedValue = document.getElementById('speedValue');
+      
+      speedSlider.addEventListener('input', () => {
+        timeStep = parseFloat(speedSlider.value) * 0.01;
+        speedValue.textContent = `${speedSlider.value}x`;
+      });
+      
+      // 质量控制
+      const massSliders = [
+        document.getElementById('mass1Slider'),
+        document.getElementById('mass2Slider'),
+        document.getElementById('mass3Slider')
+      ];
+      
+      const massValues = [
+        document.getElementById('mass1Value'),
+        document.getElementById('mass2Value'),
+        document.getElementById('mass3Value')
+      ];
+      
+      massSliders.forEach((slider, index) => {
+        slider.addEventListener('input', () => {
+          bodies[index].mass = parseFloat(slider.value);
+          massValues[index].textContent = slider.value;
+        });
+      });
+      
+      // 轨迹控制
+      document.getElementById('showTrail').addEventListener('change', (e) => {
+        showTrail = e.target.checked;
+      });
+      
+      // 轨迹长度控制
+      document.getElementById('trailLength').addEventListener('input', (e) => {
+        trailLength = parseInt(e.target.value);
+        
+        // 截断现有轨迹
+        bodies.forEach(body => {
+          while (body.trail.length > trailLength) {
+            body.trail.shift();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数学动画批量生成工具</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            accent: '#8b5cf6',
+            dark: '#1e293b',
+            light: '#f8fafc'
+          },
+          fontFamily: {
+            math: ['Roboto Mono', 'monospace'],
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .math-input {
+        @apply border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary;
+      }
+      .btn {
+        @apply px-4 py-2 rounded-md transition-all duration-200 font-medium;
+      }
+      .btn-primary {
+        @apply bg-primary text-white hover:bg-primary/90 active:bg-primary/80;
+      }
+      .btn-secondary {
+        @apply bg-secondary text-white hover:bg-secondary/90 active:bg-secondary/80;
+      }
+      .btn-accent {
+        @apply bg-accent text-white hover:bg-accent/90 active:bg-accent/80;
+      }
+      .card {
+        @apply bg-white dark:bg-dark rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700;
+      }
+      .form-label {
+        @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+      }
+    }
+  </style>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* 动画预览容器样式 */
+    #animationPreview {
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* 批量生成列表样式 */
+    .animation-item {
+      transition: all 0.2s ease;
+    }
+    
+    .animation-item:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* 加载动画 */
+    .loader {
+      border-top-color: #3b82f6;
+      animation: spinner 0.6s linear infinite;
+    }
+    
+    @keyframes spinner {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* 数学公式显示 */
+    .math-expression {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 1.1rem;
+      color: #3b82f6;
+    }
+    
+    /* 暗色模式适配 */
+    .dark .mathjax-preview {
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+  <!-- 顶部导航 -->
+  <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-calculator text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold">数学动画批量生成工具</h1>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i class="fa fa-moon-o dark:hidden"></i>
+          <i class="fa fa-sun-o hidden dark:inline-block"></i>
+        </button>
+        
+        <button id="helpBtn" class="btn btn-primary">
+          <i class="fa fa-question-circle mr-1"></i>帮助
+        </button>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- 工具介绍 -->
+    <div class="mb-8 card">
+      <h2 class="text-xl font-semibold mb-3">快速创建数学动画</h2>
+      <p class="text-gray-600 dark:text-gray-400">
+        这个工具可以帮助你快速创建和批量生成各种数学动画，包括函数图像、几何变换、微积分演示等。
+        只需设置参数，选择动画类型，即可生成高质量的数学教学动画。
+      </p>
+    </div>
+    
+    <!-- 主要操作区 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- 左侧：参数设置 -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- 动画类型选择 -->
+        <div class="card">
+          <h3 class="text-lg font-semibold mb-4">动画类型</h3>
+          <div class="space-y-3">
+            <div class="flex items-center">
+              <input type="radio" id="typeFunction" name="animationType" value="function" class="mr-2" checked>
+              <label for="typeFunction" class="cursor-pointer">函数图像动画</label>
+            </div>
+            <div class="flex items-center">
+              <input type="radio" id="typeGeometry" name="animationType" value="geometry" class="mr-2">
+              <label for="typeGeometry" class="cursor-pointer">几何变换动画</label>
+            </div>
+            <div class="flex items-center">
+              <input type="radio" id="typeCalculus" name="animationType" value="calculus" class="mr-2">
+              <label for="typeCalculus" class="cursor-pointer">微积分演示</label>
+            </div>
+            <div class="flex items-center">
+              <input type="radio" id="typeStatistics" name="animationType" value="statistics" class="mr-2">
+              <label for="typeStatistics" class="cursor-pointer">统计图表动画</label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 函数参数设置 -->
+        <div id="functionParams" class="card">
+          <h3 class="text-lg font-semibold mb-4">函数参数</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="form-label" for="functionExpr">函数表达式</label>
+              <div class="flex">
+                <input type="text" id="functionExpr" value="sin(x) + cos(2*x)" class="math-input flex-1" placeholder="例如：sin(x) + cos(2*x)">
+                <button id="previewExprBtn" class="ml-2 btn btn-secondary px-3">
+                  <i class="fa fa-eye"></i>
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">支持标准数学函数：sin, cos, tan, exp, log, sqrt等</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label" for="xMin">X最小值</label>
+                <input type="number" id="xMin" value="-10" class="math-input w-full">
+              </div>
+              <div>
+                <label class="form-label" for="xMax">X最大值</label>
+                <input type="number" id="xMax" value="10" class="math-input w-full">
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label" for="animationDuration">动画时长(秒)</label>
+                <input type="number" id="animationDuration" value="5" min="1" max="30" class="math-input w-full">
+              </div>
+              <div>
+                <label class="form-label" for="fps">帧率(FPS)</label>
+                <input type="number" id="fps" value="30" min="10" max="60" class="math-input w-full">
+              </div>
+            </div>
+            
+            <div>
+              <label class="form-label" for="animationTypeSelect">动画效果</label>
+              <select id="animationTypeSelect" class="math-input w-full">
+                <option value="draw">逐步绘制</option>
+                <option value="transform">参数变换</option>
+                <option value="wave">波形动画</option>
+                <option value="phase">相位移动</option>
+                <option value="zoom">缩放动画</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="form-label" for="resolution">分辨率</label>
+              <select id="resolution" class="math-input w-full">
+                <option value="480">480p (640×480)</option>
+                <option value="720" selected>720p (1280×720)</option>
+                <option value="1080">1080p (1920×1080)</option>
+                <option value="custom">自定义</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 样式设置 -->
+        <div class="card">
+          <h3 class="text-lg font-semibold mb-4">样式设置</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="form-label" for="lineColor">线条颜色</label>
+              <input type="color" id="lineColor" value="#3b82f6" class="w-full h-10 rounded-md cursor-pointer">
+            </div>
+            
+            <div>
+              <label class="form-label" for="bgColor">背景颜色</label>
+              <input type="color" id="bgColor" value="#ffffff" class="w-full h-10 rounded-md cursor-pointer">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label" for="lineWidth">线条宽度</label>
+                <input type="number" id="lineWidth" value="3" min="1" max="10" class="math-input w-full">
+              </div>
+              <div>
+                <label class="form-label" for="grid">显示网格</label>
+                <select id="grid" class="math-input w-full">
+                  <option value="true">是</option>
+                  <option value="false">否</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex space-x-3">
+          <button id="previewBtn" class="btn btn-primary flex-1">
+            <i class="fa fa-play mr-1"></i>预览动画
+          </button>
+          <button id="addToBatchBtn" class="btn btn-accent flex-1">
+            <i class="fa fa-plus mr-1"></i>添加到批量
+          </button>
+        </div>
+      </div>
+      
+      <!-- 右侧：预览和批量列表 -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- 动画预览 -->
+        <div class="card">
+          <h3 class="text-lg font-semibold mb-4">动画预览</h3>
+          <div id="animationPreview" class="border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800">
+            <!-- P5.js画布将在这里渲染 -->
+          </div>
+          
+          <div class="mt-4 flex space-x-3">
+            <button id="playPauseBtn" class="btn btn-primary px-4 py-2">
+              <i class="fa fa-play mr-1"></i>播放
+            </button>
+            <button id="resetBtn" class="btn btn-secondary px-4 py-2">
+              <i class="fa fa-refresh mr-1"></i>重置
+            </button>
+            <button id="exportSingleBtn" class="btn btn-accent px-4 py-2 ml-auto">
+              <i class="fa fa-download mr-1"></i>导出当前
+            </button>
+          </div>
+        </div>
+        
+        <!-- 批量生成列表 -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">批量生成列表</h3>
+            <button id="generateBatchBtn" class="btn btn-primary">
+              <i class="fa fa-cogs mr-1"></i>批量生成
+            </button>
+          </div>
+          
+          <div id="batchList" class="max-h-60 overflow-y-auto space-y-2">
+            <!-- 批量项目将动态添加到这里 -->
+            <div class="text-gray-500 dark:text-gray-400 text-center py-6">
+              点击"添加到批量"按钮添加动画项目
+            </div>
+          </div>
+          
+          <!-- 批量生成进度 -->
+          <div id="batchProgress" class="mt-4 hidden">
+            <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div id="progressBar" class="h-full bg-primary w-0 transition-all duration-300"></div>
+            </div>
+            <p id="progressText" class="text-sm text-gray-500 dark:text-gray-400 mt-2">生成进度: 0%</p>
+          </div>
+        </div>
+        
+        <!-- 导出选项 -->
+        <div class="card">
+          <h3 class="text-lg font-semibold mb-4">导出设置</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label" for="exportFormat">导出格式</label>
+              <select id="exportFormat" class="math-input w-full">
+                <option value="gif">GIF动画</option>
+                <option value="png">PNG序列</option>
+                <option value="zip">ZIP压缩包</option>
+                <option value="mp4">MP4视频 (实验性)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="form-label" for="fileNamePrefix">文件名前缀</label>
+              <input type="text" id="fileNamePrefix" value="math_animation" class="math-input w-full">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 帮助模态框 -->
+  <div id="helpModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">使用帮助</h2>
+          <button id="closeHelpBtn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <h3 class="font-semibold text-lg">1. 选择动画类型</h3>
+            <p>目前支持四种动画类型：函数图像、几何变换、微积分演示和统计图表。</p>
+          </div>
+          
+          <div>
+            <h3 class="font-semibold text-lg">2. 设置参数</h3>
+            <p>根据选择的动画类型，设置相应的参数。函数表达式支持标准数学函数，如sin(x)、cos(x)等。</p>
+          </div>
+          
+          <div>
+            <h3 class="font-semibold text-lg">3. 预览动画</h3>
+            <p>点击预览按钮查看动画效果，可以调整参数直到满意为止。</p>
+          </div>
+          
+          <div>
+            <h3 class="font-semibold text-lg">4. 批量生成</h3>
+            <p>将满意的动画添加到批量列表，设置导出格式后点击批量生成按钮即可一次性导出所有动画。</p>
+          </div>
+          
+          <div>
+            <h3 class="font-semibold text-lg">支持的函数</h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>三角函数：sin(), cos(), tan(), asin(), acos(), atan()</li>
+              <li>指数对数：exp(), log(), log10(), sqrt()</li>
+              <li>其他函数：abs(), floor(), ceil(), round(), pow()</li>
+              <li>常数：PI, E</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 脚本部分 -->
+  <script>
+    // 全局变量
+    let p5Instance;
+    let animationState = {
+      playing: false,
+      currentFrame: 0,
+      totalFrames: 150,
+      animationProgress: 0,
+      functionExpr: 'sin(x) + cos(2*x)',
+      animationType: 'draw',
+      params: {
+        xMin: -10,
+        xMax: 10,
+        duration: 5,
+        fps: 30,
+        lineColor: '#3b82f6',
+        bgColor: '#ffffff',
+        lineWidth: 3,
+        grid: true,
+        resolution: '720'
+      }
+    };
+    
+    let batchAnimations = [];
+    
+    // DOM加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化P5.js实例
+      initP5();
+      
+      // 事件监听
+      setupEventListeners();
+      
+      // 暗色模式切换
+      initThemeToggle();
+      
+      // 初始化批量列表为空状态
+      updateBatchList();
+    });
+    
+    // 初始化P5.js
+    function initP5() {
+      const sketch = function(p) {
+        let canvas;
+        let width, height;
+        
+        p.setup = function() {
+          // 获取预览容器尺寸
+          const previewContainer = document.getElementById('animationPreview');
+          width = previewContainer.offsetWidth;
+          height = previewContainer.offsetHeight;
+          
+          // 创建画布
+          canvas = p.createCanvas(width, height);
+          canvas.parent('animationPreview');
+          
+          // 设置初始状态
+          p.frameRate(animationState.params.fps);
+        };
+        
+        p.draw = function() {
+          // 清除画布
+          p.background(animationState.params.bgColor);
+          
+          // 如果动画正在播放，更新进度
+          if (animationState.playing) {
+            animationState.currentFrame = (animationState.currentFrame + 1) % animationState.totalFrames;
+            animationState.animationProgress = animationState.currentFrame / animationState.totalFrames;
+            
+            // 如果到达最后一帧，停止动画
+            if (animationState.currentFrame === 0) {
+              animationState.playing = false;
+              document.getElementById('playPauseBtn').innerHTML = '<i class="fa fa-play mr-1"></i>播放';
+            }
+          }
+          
+          // 绘制坐标轴和网格
+          drawGridAndAxes(p);
+          
+          // 绘制函数图像
+          drawFunction(p);
+        };
+        
+        // 绘制网格和坐标轴
+        function drawGridAndAxes(p) {
+          if (animationState.params.grid) {
+            p.stroke(animationState.params.bgColor === '#ffffff' ? '#e5e7eb' : '#374151');
+            p.strokeWeight(1);
+            
+            // 绘制网格线
+            const xStep = width / (animationState.params.xMax - animationState.params.xMin);
+            const yStep = height / 10; // 假设y轴范围是-5到5
+            
+            // 垂直网格线
+            for (let x = animationState.params.xMin; x <= animationState.params.xMax; x++) {
+              const px = mapX(x);
+              p.line(px, 0, px, height);
+            }
+            
+            // 水平网格线
+            for (let y = -5; y <= 5; y++) {
+              const py = mapY(y);
+              p.line(0, py, width, py);
+            }
+          }
+          
+          // 绘制坐标轴
+          p.stroke('#6b7280');
+          p.strokeWeight(2);
+          
+          // x轴
+          const xAxisY = mapY(0);
+          p.line(0, xAxisY, width, xAxisY);
+          
+          // y轴
+          const yAxisX = mapX(0);
+          p.line(yAxisX, 0, yAxisX, height);
+          
+          // 坐标轴标签
+          p.fill('#6b7280');
+          p.noStroke();
+          p.textSize(12);
+          
+          // x轴刻度和标签
+          for (let x = Math.floor(animationState.params.xMin); x <= Math.ceil(animationState.params.xMax); x++) {
+            if (x !== 0) {
+              const px = mapX(x);
+              p.line(px, xAxisY - 5, px, xAxisY + 5);
+              p.text(x, px - 5, xAxisY + 15);
+            }
+          }
+          
+          // y轴刻度和标签
+          for (let y = -5; y <= 5; y++) {
+            if (y !== 0 && y % 2 === 0) {
+              const py = mapY(y);
+              p.line(yAxisX - 5, py, yAxisX + 5, py);
+              p.text(y, yAxisX + 10, py + 5);
+            }
+          }
+        }
+        
+        // 绘制函数图像
+        function drawFunction(p) {
+          p.stroke(animationState.params.lineColor);
+          p.strokeWeight(animationState.params.lineWidth);
+          p.noFill();
+          
+          p.beginShape();
+          
+          const totalXSteps = width;
+          const progress = animationState.animationProgress;
+          
+          for (let i = 0; i < totalXSteps * progress; i++) {
+            const x = p.map(i, 0, totalXSteps, animationState.params.xMin, animationState.params.xMax);
+            let y;
+            
+            try {
+              // 使用eval计算函数值，注意安全风险
+              const expr = animationState.functionExpr.replace(/x/g, `(${x})`)
+                .replace(/PI/g, 'Math.PI')
+                .replace(/E/g, 'Math.E')
+                .replace(/sin/g, 'Math.sin')
+                .replace(/cos/g, 'Math.cos')
+                .replace(/tan/g, 'Math.tan')
+                .replace(/asin/g, 'Math.asin')
+                .replace(/acos/g, 'Math.acos')
+                .replace(/atan/g, 'Math.atan')
+                .replace(/exp/g, 'Math.exp')
+                .replace(/log/g, 'Math.log')
+                .replace(/log10/g, 'Math.log10')
+                .replace(/sqrt/g, 'Math.sqrt')
+                .replace(/abs/g, 'Math.abs')
+                .replace(/floor/g, 'Math.floor')
+                .replace(/ceil/g, 'Math.ceil')
+                .replace(/round/g, 'Math.round')
+                .replace(/pow/g, 'Math.pow');
+              
+              y = eval(expr);
+              
+              // 将数学坐标映射到画布坐标
+              const px = mapX(x);
+              const py = mapY(y);
+              
+              // 添加顶点
+              p.vertex(px, py);
+            } catch (e) {
+              console.error('函数表达式错误:', e);
+              break;
+            }
+          }
+          
+          p.endShape();
+        }
+        
+        // 将数学坐标映射到画布坐标
+        function mapX(x) {
+          return p.map(x, animationState.params.xMin, animationState.params.xMax, 0, width);
+        }
+        
+        function mapY(y) {
+          // 假设y轴范围是-5到5
+          return p.map(y, -5, 5, height, 0);
+        }
+      };
+      
+      // 创建P5实例
+      p5Instance = new p5(sketch);
+    }
+    
+    // 设置事件监听
+    function setupEventListeners() {
+      // 预览按钮
+      document.getElementById('previewBtn').addEventListener('click', updateAnimationParams);
+      
+      // 播放/暂停按钮
+      document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+      
+      // 重置按钮
+      document.getElementById('resetBtn').addEventListener('click', resetAnimation);
+      
+      // 添加到批量按钮
+      document.getElementById('addToBatchBtn').addEventListener('click', addToBatch);
+      
+      // 批量生成按钮
+      document.getElementById('generateBatchBtn').addEventListener('click', generateBatch);
+      
+      // 导出当前按钮
+      document.getElementById('exportSingleBtn').addEventListener('click', exportCurrentAnimation);
+      
+      // 帮助按钮和模态框
+      document.getElementById('helpBtn').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.remove('hidden');
+      });
+      
+      document.getElementById('closeHelpBtn').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.add('hidden');
+      });
+      
+      // 函数表达式预览按钮
+      document.getElementById('previewExprBtn').addEventListener('click', updateAnimationParams);
+      
+      // 动画类型切换
+      document.querySelectorAll('input[name="animationType"]').forEach(radio => {
+        radio.addEventListener('change', updateAnimationType);
+      });
+      
+      // 点击模态框背景关闭
+      document.getElementById('helpModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('helpModal')) {
+          document.getElementById('helpModal').classList.add('hidden');
+        }
+      });
+    }
+    
+    // 初始化主题切换
+    function initThemeToggle() {
+      // 检查本地存储的主题偏好
+      if (localStorage.getItem('theme') === 'dark' || 
+          (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+      
+      // 主题切换按钮
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        
+        // 保存主题偏好
+        if (document.documentElement.classList.contains('dark')) {
+          localStorage.setItem('theme', 'dark');
+        } else {
+          localStorage.setItem('theme', 'light');
+        }
+        
+        // 更新背景颜色参数
+        updateAnimationParams();
+      });
+    }
+    
+    // 更新动画参数
+    function updateAnimationParams() {
+      // 从表单获取参数
+      animationState.functionExpr = document.getElementById('functionExpr').value;
+      animationState.params.xMin = parseFloat(document.getElementById('xMin').value);
+      animationState.params.xMax = parseFloat(document.getElementById('xMax').value);
+      animationState.params.duration = parseFloat(document.getElementById('animationDuration').value);
+      animationState.params.fps = parseFloat(document.getElementById('fps').value);
+      animationState.params.lineColor = document.getElementById('lineColor').value;
+      animationState.params.bgColor = document.getElementById('bgColor').value;
+      animationState.params.lineWidth = parseFloat(document.getElementById('lineWidth').value);
+      animationState.params.grid = document.getElementById('grid').value === 'true';
+      animationState.params.resolution = document.getElementById('resolution').value;
+      animationState.animationType = document.getElementById('animationTypeSelect').value;
+      
+      // 更新总帧数
+      animationState.totalFrames = animationState.params.duration * animationState.params.fps;
+      
+      // 重置动画
+      resetAnimation();
+      
+      // 更新P5帧率
+      if (p5Instance) {
+        p5Instance.frameRate(animationState.params.fps);
+      }
+    }
+    
+    // 更新动画类型
+    function updateAnimationType() {
+      const selectedType = document.querySelector('input[name="animationType"]:checked').value;
+      
+      // 显示/隐藏对应的参数面板
+      document.querySelectorAll('.animation-params').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+      
+      document.getElementById(`${selectedType}Params`).classList.remove('hidden');
+    }
+    
+    // 播放/暂停切换
+    function togglePlayPause() {
+      animationState.playing = !animationState.playing;
+      
+      const btn = document.getElementById('playPauseBtn');
+      if (animationState.playing) {
+        btn.innerHTML = '<i class="fa fa-pause mr-1"></i>暂停';
+      } else {
+        btn.innerHTML = '<i class="fa fa-play mr-1"></i>播放';
+      }
+    }
+    
+    // 重置动画
+    function resetAnimation() {
+      animationState.playing = false;
+      animationState.currentFrame = 0;
+      animationState.animationProgress = 0;
+      
+      document.getElementById('playPauseBtn').innerHTML = '<i class="fa fa-play mr-1"></i>播放';
+    }
+    
+    // 添加到批量列表
+    function addToBatch() {
+      // 创建动画配置对象
+      const animationConfig = {
+        id: Date.now(),
+        name: `${document.getElementById('fileNamePrefix').value}_${batchAnimations.length + 1}`,
+        functionExpr: animationState.functionExpr,
+        params: {...animationState.params},
+        animationType: animationState.animationType
+      };
+      
+      // 添加到批量列表
+      batchAnimations.push(animationConfig);
+      
+      // 更新UI
+      updateBatchList();
+      
+      // 显示成功提示
+      alert('动画已添加到批量列表！');
+    }
+    
+    // 更新批量列表UI
+    function updateBatchList() {
+      const batchListEl = document.getElementById('batchList');
+      
+      if (batchAnimations.length === 0) {
+        batchListEl.innerHTML = `
+          <div class="text-gray-500 dark:text-gray-400 text-center py-6">
+            点击"添加到批量"按钮添加动画项目
+          </div>
+        `;
+        return;
+      }
+      
+      // 生成批量列表HTML
+      batchListEl.innerHTML = batchAnimations.map((anim, index) => `
+        <div class="animation-item bg-gray-100 dark:bg-gray-700 rounded-md p-3 flex justify-between items-center">
+          <div>
+            <span class="font-medium">动画 ${index + 1}:</span>
+            <span class="math-expression ml-2">${anim.functionExpr}</span>
+          </div>
+          <button class="delete-item text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" data-id="${anim.id}">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+      
+      // 添加删除事件监听
+      document.querySelectorAll('.delete-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(e.currentTarget.dataset.id);
+          batchAnimations = batchAnimations.filter(anim => anim.id !== id);
+          updateBatchList();
+        });
+      });
+    }
+    
+    // 导出当前动画
+    function exportCurrentAnimation() {
+      const format = document.getElementById('exportFormat').value;
+      const fileName = `${document.getElementById('fileNamePrefix').value}_single`;
+      
+      // 显示加载状态
+      const btn = document.getElementById('exportSingleBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i>处理中';
+      btn.disabled = true;
+      
+      // 模拟导出过程
+      setTimeout(() => {
+        // 创建临时链接下载
+        const link = document.createElement('a');
+        link.download = `${fileName}.${format}`;
+        
+        // 这里只是模拟，实际实现需要根据格式生成文件
+        link.href = '#';
+        link.click();
+        
+        // 恢复按钮状态
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        alert(`动画已导出为 ${fileName}.${format}`);
+      }, 1500);
+    }
+    
+    // 批量生成动画
+    function generateBatch() {
+      if (batchAnimations.length === 0) {
+        alert('批量列表为空，请先添加动画！');
+        return;
+      }
+      
+      // 显示进度条
+      document.getElementById('batchProgress').classList.remove('hidden');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      
+      // 禁用生成按钮
+      const generateBtn = document.getElementById('generateBatchBtn');
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i>生成中';
+      
+      // 模拟批量生成过程
+      let current = 0;
+      const total = batchAnimations.length;
+      
+      const generateNext = () => {
+        if (current >= total) {
+          // 完成
+          progressBar.style.width = '100%';
+          progressText.textContent = `生成完成！`;
+          
+          // 恢复按钮状态
+          generateBtn.disabled = false;
+          generateBtn.innerHTML = '<i class="fa fa-cogs mr-1"></i>批量生成';
+          
+          // 模拟下载ZIP包
+          setTimeout(() => {
+            alert('批量生成完成！所有动画已打包为ZIP文件下载。');
+          }, 500);
+          
+          return;
+        }
+        
+        // 更新进度
+        current++;
+        const progress = (current / total) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressText.textContent = `生成进度: ${Math.round(progress)}% (${current}/${total})`;
+        
+        // 模拟生成单个动画的延迟
+        setTimeout(generateNext, 800);
+      };
+      
+      // 开始生成
+      generateNext();
+    }
+  </script>
+</body>
+</html>

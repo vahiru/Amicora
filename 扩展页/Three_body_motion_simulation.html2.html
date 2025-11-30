@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三体运动模拟</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 星空背景容器 -->
+  <div id="starfield" class="absolute inset-0 z-0"></div>
+
+  <style>
+    #starfield {
+      background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+    }
+    
+    .star {
+      position: absolute;
+      background-color: white;
+      border-radius: 50%;
+      animation: twinkle 2s infinite ease-in-out;
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    
+    /* 3D相关样式 */
+    .body-highlight {
+      box-shadow: 0 0 20px 5px currentColor;
+    }
+  </style>
+
+  <script>
+    // 生成星空背景
+    function createStarfield() {
+      const starfield = document.getElementById('starfield');
+      const starsCount = 300;
+      
+      for (let i = 0; i < starsCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        
+        // 随机位置和大小
+        const size = Math.random() * 2;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.animationDelay = `${Math.random() * 3}s`;
+        
+        starfield.appendChild(star);
+      }
+    }
+    
+    // 初始化时调用
+    createStarfield();
+  </script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8B5CF6',
+            secondary: '#3B82F6',
+            dark: '#1E293B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .menu-tab.active {
+        @apply text-primary border-b-2 border-primary;
+      }
+      .minimized {
+        @apply w-16 h-16 p-2;
+      }
+      .minimized *:not(#toggleMenu) {
+        @apply hidden;
+      }
+      .minimized #toggleMenu {
+        @apply block mx-auto mt-2;
+      }
+    }
+  </style>
+  
+  <style>
+    body {
+      overflow: hidden;
+      background-color: #0F172A;
+    }
+    #simulationCanvas {
+      display: block;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #8B5CF6;
+      cursor: pointer;
+    }
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 5px;
+      background: #374151;
+      outline: none;
+    }
+    .coordinate-label {
+      position: absolute;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+  </style>
+</head>
+<body class="font-sans text-white">
+  <div class="relative w-full h-screen">
+    <!-- 模拟画布 -->
+    <canvas id="simulationCanvas" class="absolute inset-0 w-full h-full"></canvas>
+    
+    <!-- 控制面板 -->
+    <div id="controlPanel" class="absolute top-4 right-4 w-72 glass-effect bg-dark/60 rounded-xl p-5 border border-white/10 shadow-lg z-10 transition-all duration-300">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold flex items-center">
+          <i class="fa fa-cubes text-primary mr-2"></i>三体运动模拟
+        </h2>
+        <button id="toggleMenu" class="text-white/70 hover:text-white">
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+      
+      <!-- 菜单标签 -->
+      <div class="flex border-b border-gray-700 mb-4">
+        <button class="menu-tab active px-3 py-1 text-sm" data-tab="parameters">天体参数</button>
+        <button class="menu-tab px-3 py-1 text-sm" data-tab="coordinates">天体坐标</button>
+        <button class="menu-tab px-3 py-1 text-sm" data-tab="status">天体状态</button>
+        <button class="menu-tab px-3 py-1 text-sm" data-tab="phenomena">观测现象</button>
+      </div>
+      
+      <!-- 菜单内容：天体参数 -->
+      <div class="menu-content" id="parametersContent">
+        <div class="space-y-4 text-sm">
+          <div>
+            <div class="flex justify-between mb-1">
+              <label>模拟速度</label>
+              <span id="speedValue">1x</span>
+            </div>
+            <input type="range" id="speedSlider" class="slider" min="1" max="20" value="1">
+          </div>
+          
+          <div>
+            <div class="flex justify-between mb-1">
+              <label>帧子步</label>
+              <span id="substepsValue">1</span>
+            </div>
+            <input type="range" id="substepsSlider" class="slider" min="1" max="10" value="1">
+          </div>
+          
+          <div class="pt-2 border-t border-gray-700">
+            <h3 class="font-semibold mb-2">天体 1 (紫色)</h3>
+            <div class="flex justify-between mb-1">
+              <label>质量</label>
+              <span id="mass1Value">1000</span>
+            </div>
+            <input type="range" id="mass1Slider" class="slider" min="100" max="5000" value="1000">
+          </div>
+          
+          <div>
+            <h3 class="font-semibold mb-2">天体 2 (蓝色)</h3>
+            <div class="flex justify-between mb-1">
+              <label>质量</label>
+              <span id="mass2Value">1000</span>
+            </div>
+            <input type="range" id="mass2Slider" class="slider" min="100" max="5000" value="1000">
+          </div>
+          
+          <div>
+            <h3 class="font-semibold mb-2">天体 3 (粉色)</h3>
+            <div class="flex justify-between mb-1">
+              <label>质量</label>
+              <span id="mass3Value">1000</span>
+            </div>
+            <input type="range" id="mass3Slider" class="slider" min="100" max="5000" value="1000">
+          </div>
+          
+          <div class="pt-2 border-t border-gray-700 flex space-x-2">
+            <button id="startBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white rounded px-2 py-1 text-xs">
+              <i class="fa fa-play mr-1"></i>开始
+            </button>
+            <button id="pauseBtn" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded px-2 py-1 text-xs">
+              <i class="fa fa-pause mr-1"></i>暂停
+            </button>
+            <button id="resetBtn" class="flex-1 bg-primary hover:bg-primary/80 text-white rounded px-2 py-1 text-xs">
+              <i class="fa fa-refresh mr-1"></i>重置
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 菜单内容：天体坐标 -->
+      <div class="menu-content hidden" id="coordinatesContent">
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between items-center">
+            <span>显示坐标系</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="showCoordinates" class="sr-only peer" checked>
+              <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+          
+          <div class="pt-2 border-t border-gray-700">
+            <h3 class="font-semibold mb-2">天体 1 (紫色)</h3>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <div class="text-xs text-gray-400">X</div>
+                <div id="pos1X">-</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400">Y</div>
+                <div id="pos1Y">-</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400">Z</div>
+                <div id="pos1Z">-</div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 class="font-semibold mb-2">天体 2 (蓝色)</h3>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <div class="text-xs text-gray-400">X</div>
+                <div id="pos2X">-</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400">Y</div>
+                <div id="pos2Y">-</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400">Z</div>
+                <div id="pos2Z">-</div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 class="font-semibold mb-2">天体 3 (粉色)</h3>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <div class="text-xs text-gray-400">X</div>
+                <div id="pos3X">-</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400">Y</div>
+                <div id="pos3Y">-</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400">Z</div>
+                <div id="pos3Z">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 菜单内容：天体状态 -->
+      <div class="menu-content hidden" id="statusContent">
+        <div id="celestialStatus" class="space-y-3 text-sm">
+          <div class="pt-2">
+            <h3 class="font-semibold mb-2">相互作用</h3>
+            <div id="interactionStatus" class="text-gray-300">计算中...</div>
+          </div>
+          
+          <div class="pt-2 border-t border-gray-700">
+            <h3 class="font-semibold mb-2">轨迹控制</h3>
+            <div class="flex justify-between items-center">
+              <span>显示轨迹</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="showTrail" class="sr-only peer" checked>
+                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+              </label>
+            </div>
+            <div class="flex justify-between mb-1 mt-2">
+              <label>轨迹长度</label>
+              <span id="trailLengthValue">100</span>
+            </div>
+            <input type="range" id="trailLength" class="slider" min="10" max="500" value="100">
+          </div>
+          
+          <div class="pt-2 border-t border-gray-700">
+            <h3 class="font-semibold mb-2">视图控制</h3>
+            <div class="flex space-x-2">
+              <button id="zoomIn" class="flex-1 bg-primary/80 hover:bg-primary text-white rounded px-2 py-1 text-xs">
+                <i class="fa fa-search-plus"></i>
+              </button>
+              <button id="zoomOut" class="flex-1 bg-primary/80 hover:bg-primary text-white rounded px-2 py-1 text-xs">
+                <i class="fa fa-search-minus"></i>
+              </button>
+              <button id="resetView" class="flex-1 bg-primary/80 hover:bg-primary text-white rounded px-2 py-1 text-xs">
+                <i class="fa fa-home"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 菜单内容：观测现象 -->
+      <div class="menu-content hidden" id="phenomenaContent">
+        <div id="observationPhenomena" class="space-y-3 text-sm">
+          <div class="p-3 bg-gray-800/50 rounded-lg">
+            <h3 class="font-semibold mb-2">当前现象</h3>
+            <p id="phenomenonText" class="text-lg">正常运行中</p>
+          </div>
+          
+          <div class="pt-2 border-t border-gray-700">
+            <h3 class="font-semibold mb-2">视觉效果</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <span>光影模式</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="lightMode" class="sr-only peer">
+                  <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>光追模式</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="rayTraceMode" class="sr-only peer">
+                  <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>软化效果</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="softenEffect" class="sr-only peer" checked>
+                  <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 信息面板 -->
+    <div class="absolute bottom-4 left-4 glass-effect bg-dark/60 rounded-xl p-4 border border-white/10 shadow-lg z-10 max-w-md">
+      <div class="text-sm">
+        <p>三体问题是指三个质量、初始位置和初始速度都是任意的可视为质点的天体，在相互之间万有引力的作用下的运动规律问题。</p>
+        <p class="mt-2 text-gray-400">由于其运动方程无法用解析方法求解，这里使用数值方法进行近似模拟。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 菜单切换功能
+    document.querySelectorAll('.menu-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // 移除所有激活状态
+        document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.menu-content').forEach(c => c.classList.add('hidden'));
+        
+        // 激活当前标签
+        tab.classList.add('active');
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(`${tabId}Content`).classList.remove('hidden');
+      });
+    });
+    
+    // 一键隐藏菜单
+    document.getElementById('toggleMenu').addEventListener('click', () => {
+      const panel = document.getElementById('controlPanel');
+      panel.classList.toggle('minimized');
+    });
+
+    // 三体运动模拟核心代码
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('simulationCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // 设置画布尺寸
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      
+      // 物理常量和模拟参数
+      const G = 100; // 引力常量（放大以便观察）
+      let timeStep = 0.01; // 时间步长
+      let substeps = 1; // 帧子步数
+      let zoom = 1; // 缩放因子
+      
+      // 3D视角参数
+      let cameraZ = 500;
+      
+      // 三体对象（3D）
+      let bodies = [
+        {
+          mass: 1000,
+          x: -200,
+          y: 0,
+          z: 50,
+          vx: 0,
+          vy: 5,
+          vz: 1,
+          radius: 15,
+          color: '#8B5CF6', // 紫色
+          trail: [],
+          isHovered: false
+        },
+        {
+          mass: 1000,
+          x: 0,
+          y: 0,
+          z: -50,
+          vx: 0,
+          vy: -5,
+          vz: -1,
+          radius: 15,
+          color: '#3B82F6', // 蓝色
+          trail: [],
+          isHovered: false
+        },
+        {
+          mass: 1000,
+          x: 200,
+          y: 0,
+          z: 0,
+          vx: 0,
+          vy: 0,
+          vz: 0,
+          radius: 15,
+          color: '#EC4899', // 粉色
+          trail: [],
+          isHovered: false
+        }
+      ];
+      
+      // 模拟状态
+      let isRunning = true;
+      let trailLength = 100;
+      let showTrail = true;
+      let showCoordinates = true;
+      let lightMode = false;
+      let rayTraceMode = false;
+      let softenEffect = true;
+      
+      // 坐标转换：3D到2D透视投影
+      function project3DTo2D(x, y, z) {
+        const scale = cameraZ / (cameraZ + z) * zoom;
+        return {
+          x: x * scale + canvas.width / 2,
+          y: y * scale + canvas.height / 2,
+          scale: scale
+        };
+      }
+      
+      // 绘制3D坐标系
+      function draw3DCoordinates() {
+        const origin = project3DTo2D(0, 0, 0);
+        
+        // X轴（红色）
+        ctx.beginPath();
+        ctx.moveTo(origin.x, origin.y);
+        const xEnd = project3DTo2D(300, 0, 0);
+        ctx.lineTo(xEnd.x, xEnd.y);
+        ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Y轴（绿色）
+        ctx.beginPath();
+        ctx.moveTo(origin.x, origin.y);
+        const yEnd = project3DTo2D(0, 300, 0);
+        ctx.lineTo(yEnd.x, yEnd.y);
+        ctx.strokeStyle = 'rgba(0, 255, 0, 0.7)';
+        ctx.stroke();
+        
+        // Z轴（蓝色）
+        ctx.beginPath();
+        ctx.moveTo(origin.x, origin.y);
+        const zEnd = project3DTo2D(0, 0, 300);
+        ctx.lineTo(zEnd.x, zEnd.y);
+        ctx.strokeStyle = 'rgba(0, 0, 255, 0.7)';
+        ctx.stroke();
+        
+        // 轴标签
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.font = '14px Arial';
+        ctx.fillText('X', xEnd.x + 5, xEnd.y);
+        ctx.fillText('Y', yEnd.x + 5, yEnd.y);
+        ctx.fillText('Z', zEnd.x + 5, zEnd.y);
+      }
+      
+      // 计算引力（3D）
+      function calculateGravity(bodyA, bodyB) {
+        const dx = bodyB.x - bodyA.x;
+        const dy = bodyB.y - bodyA.y;
+        const dz = bodyB.z - bodyA.z;
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        
+        // 避免除以零和碰撞处理
+        if (distance < bodyA.radius + bodyB.radius) {
+          // 简单的弹性碰撞处理
+          const tempVx = bodyA.vx;
+          const tempVy = bodyA.vy;
+          const tempVz = bodyA.vz;
+          
+          bodyA.vx = bodyB.vx * 0.9;
+          bodyA.vy = bodyB.vy * 0.9;
+          bodyA.vz = bodyB.vz * 0.9;
+          
+          bodyB.vx = tempVx * 0.9;
+          bodyB.vy = tempVy * 0.9;
+          bodyB.vz = tempVz * 0.9;
+          
+          return { fx: 0, fy: 0, fz: 0 };
+        }
+        
+        // 万有引力公式 F = G * m1 * m2 / r²
+        const force = (G * bodyA.mass * bodyB.mass) / (distance * distance);
+        
+        // 力的分量
+        return {
+          fx: (force * dx) / distance,
+          fy: (force * dy) / distance,
+          fz: (force * dz) / distance
+        };
+      }
+      
+      // 更新位置和速度
+      function updateBodies() {
+        if (!isRunning) return;
+        
+        // 应用子步计算提高精度
+        for (let s = 0; s < substeps; s++) {
+          // 计算每个天体受到的力
+          const forces = bodies.map(() => ({ fx: 0, fy: 0, fz: 0 }));
+          
+          for (let i = 0; i < bodies.length; i++) {
+            for (let j = i + 1; j < bodies.length; j++) {
+              const gravity = calculateGravity(bodies[i], bodies[j]);
+              
+              // 力是相互的
+              forces[i].fx += gravity.fx;
+              forces[i].fy += gravity.fy;
+              forces[i].fz += gravity.fz;
+              
+              forces[j].fx -= gravity.fx;
+              forces[j].fy -= gravity.fy;
+              forces[j].fz -= gravity.fz;
+            }
+          }
+          
+          // 更新速度和位置
+          const step = timeStep / substeps;
+          bodies.forEach((body, index) => {
+            // F = ma => a = F/m
+            const ax = forces[index].fx / body.mass;
+            const ay = forces[index].fy / body.mass;
+            const az = forces[index].fz / body.mass;
+            
+            // 更新速度
+            body.vx += ax * step;
+            body.vy += ay * step;
+            body.vz += az * step;
+            
+            // 更新位置
+            body.x += body.vx * step;
+            body.y += body.vy * step;
+            body.z += body.vz * step;
+            
+            // 边界处理 - 防止天体跑得太远
+            const maxDistance = 1500;
+            if (Math.abs(body.x) > maxDistance) body.vx = -body.vx * 0.8;
+            if (Math.abs(body.y) > maxDistance) body.vy = -body.vy * 0.8;
+            if (Math.abs(body.z) > maxDistance) body.vz = -body.vz * 0.8;
+            
+            // 记录轨迹
+            body.trail.push({ x: body.x, y: body.y, z: body.z });
+            if (body.trail.length > trailLength) {
+              body.trail.shift();
+            }
+          });
+        }
+      }
+      
+      // 检测三体现象
+      function checkPhenomena() {
+        const phenomenonEl = document.getElementById('phenomenonText');
+        
+        // 计算天体之间的距离
+        const distances = [];
+        for (let i = 0; i < bodies.length; i++) {
+          for (let j = i + 1; j < bodies.length; j++) {
+            const dx = bodies[i].x - bodies[j].x;
+            const dy = bodies[i].y - bodies[j].y;
+            const dz = bodies[i].z - bodies[j].z;
+            distances.push(Math.sqrt(dx*dx + dy*dy + dz*dz));
+          }
+        }
+        
+        // 检测三日凌空（三个天体接近）
+        if (distances.every(d => d < 300)) {
+          phenomenonEl.textContent = "三日凌空";
+          phenomenonEl.style.color = "#ffd166";
+          return;
+        }
+        
+        // 检测飞星不动（某个天体速度极低）
+        const slowThreshold = 0.5;
+        const slowBodies = bodies.filter(b => 
+          Math.sqrt(b.vx*b.vx + b.vy*b.vy + b.vz*b.vz) < slowThreshold
+        );
+        
+        if (slowBodies.length > 0) {
+          phenomenonEl.textContent = `飞星不动 (${slowBodies.length}个)`;
+          phenomenonEl.style.color = "#06d6a0";
+          return;
+        }
+        
+        // 检测双星系统（两个天体接近，第三个较远）
+        if (distances[0] < 200 && distances[1] > 500 && distances[2] > 500) {
+          phenomenonEl.textContent = "双星系统";
+          phenomenonEl.style.color = "#118ab2";
+          return;
+        }
+        if (distances[1] < 200 && distances[0] > 500 && distances[2] > 500) {
+          phenomenonEl.textContent = "双星系统";
+          phenomenonEl.style.color = "#118ab2";
+          return;
+        }
+        if (distances[2] < 200 && distances[0] > 500 && distances[1] > 500) {
+          phenomenonEl.textContent = "双星系统";
+          phenomenonEl.style.color = "#118ab2";
+          return;
+        }
+        
+        // 正常状态
+        phenomenonEl.textContent = "正常运行中";
+        phenomenonEl.style.color = "inherit";
+      }
+      
+      // 更新相互作用状态显示
+      function updateInteractionStatus() {
+        const interactionEl = document.getElementById('interactionStatus');
+        let text = "";
+        
+        for (let i = 0; i < bodies.length; i++) {
+          for (let j = i + 1; j < bodies.length; j++) {
+            const dx = bodies[i].x - bodies[j].x;
+            const dy = bodies[i].y - bodies[j].y;
+            const dz = bodies[i].z - bodies[j].z;
+            const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            
+            // 计算引力大小（标量）
+            const forceMagnitude = (G * bodies[i].mass * bodies[j].mass) / (distance * distance || 1);
+            const forceLevel = forceMagnitude > 5000 ? "强引力" : 
+                               forceMagnitude > 1000 ? "中等引力" : "弱引力";
+            
+            text += `天体 ${i+1} 与 ${j+1}: ${forceLevel}<br>`;
+          }
+        }
+        
+        interactionEl.innerHTML = text;
+      }
+      
+      // 更新坐标显示
+      function updateCoordinateDisplay() {
+        document.getElementById('pos1X').textContent = Math.round(bodies[0].x);
+        document.getElementById('pos1Y').textContent = Math.round(bodies[0].y);
+        document.getElementById('pos1Z').textContent = Math.round(bodies[0].z);
+        
+        document.getElementById('pos2X').textContent = Math.round(bodies[1].x);
+        document.getElementById('pos2Y').textContent = Math.round(bodies[1].y);
+        document.getElementById('pos2Z').textContent = Math.round(bodies[1].z);
+        
+        document.getElementById('pos3X').textContent = Math.round(bodies[2].x);
+        document.getElementById('pos3Y').textContent = Math.round(bodies[2].y);
+        document.getElementById('pos3Z').textContent = Math.round(bodies[2].z);
+      }
+      
+      // 绘制场景
+      function draw() {
+        // 清空画布
+        ctx.fillStyle = softenEffect ? 'rgba(15, 23, 42, 0.15)' : 'rgba(15, 23, 42, 1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 绘制3D坐标系
+        if (showCoordinates) {
+          draw3DCoordinates();
+        }
+        
+        // 绘制轨迹（考虑z轴透视）
+        if (showTrail) {
+          bodies.forEach(body => {
+            if (body.trail.length < 2) return;
+            
+            ctx.beginPath();
+            const firstPoint = project3DTo2D(body.trail[0].x, body.trail[0].y, body.trail[0].z);
+            ctx.moveTo(firstPoint.x, firstPoint.y);
+            
+            for (let i = 1; i < body.trail.length; i++) {
+              const point = project3DTo2D(body.trail[i].x, body.trail[i].y, body.trail[i].z);
+              ctx.lineTo(point.x, point.y);
+            }
+            
+            ctx.strokeStyle = `${body.color}40`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          });
+        }
+        
+        // 按Z轴排序，远处的先画
+        const sortedBodies = [...bodies].sort((a, b) => b.z - a.z);
+        
+        // 绘制天体（考虑z轴透视）
+        sortedBodies.forEach(body => {
+          const projected = project3DTo2D(body.x, body.y, body.z);
+          const radius = body.radius * projected.scale;
+          
+          // 光追效果
+          if (rayTraceMode) {
+            // 简单的光晕效果模拟光追
+            const gradient = ctx.createRadialGradient(
+              projected.x, projected.y, radius * 0.1,
+              projected.x, projected.y, radius * 2
+            );
+            gradient.addColorStop(0, `${body.color}ff`);
+            gradient.addColorStop(0.5, `${body.color}80`);
+            gradient.addColorStop(1, `${body.color}00`);
+            
+            ctx.beginPath();
+            ctx.arc(projected.x, projected.y, radius * 2, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+          }
+          
+          // 光影效果
+          if (lightMode) {
+            // 绘制高光
+            const lightX = projected.x - radius * 0.3;
+            const lightY = projected.y - radius * 0.3;
+            const lightGradient = ctx.createRadialGradient(
+              lightX, lightY, 0,
+              lightX, lightY, radius * 0.7
+            );
+            lightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+            lightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.beginPath();
+            ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = body.color;
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = lightGradient;
+            ctx.fill();
+          } else {
+            // 普通绘制
+            ctx.beginPath();
+            ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = body.color;
+            ctx.fill();
+          }
+          
+          // 软化效果
+          if (softenEffect && !rayTraceMode) {
+            ctx.beginPath();
+            ctx.arc(projected.x, projected.y, radius * 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = `${body.color}30`;
+            ctx.fill();
+          }
+          
+          // 鼠标悬停高亮
+          if (body.isHovered) {
+            ctx.beginPath();
+            ctx.arc(projected.x, projected.y, radius * 1.3, 0, Math.PI * 2);
+            ctx.strokeStyle = body.color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制天体编号
+            ctx.fillStyle = 'white';
+            ctx.font = `${radius}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(bodies.indexOf(body) + 1, projected.x, projected.y);
+          }
+        });
+      }
+      
+      // 动画循环
+      function animate() {
+        updateBodies();
+        draw();
+        checkPhenomena();
+        updateInteractionStatus();
+        updateCoordinateDisplay();
+        requestAnimationFrame(animate);
+      }
+      
+      // 开始动画
+      animate();
+      
+      // 控制面板事件
+      document.getElementById('startBtn').addEventListener('click', () => {
+        isRunning = true;
+      });
+      
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = false;
+      });
+      
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        // 重置三体位置和速度
+        const mass1 = parseFloat(document.getElementById('mass1Slider').value);
+        const mass2 = parseFloat(document.getElementById('mass2Slider').value);
+        const mass3 = parseFloat(document.getElementById('mass3Slider').value);
+        
+        bodies = [
+          {
+            mass: mass1,
+            x: -200,
+            y: 0,
+            z: 50,
+            vx: 0,
+            vy: 5,
+            vz: 1,
+            radius: 15,
+            color: '#8B5CF6',
+            trail: [],
+            isHovered: false
+          },
+          {
+            mass: mass2,
+            x: 0,
+            y: 0,
+            z: -50,
+            vx: 0,
+            vy: -5,
+            vz: -1,
+            radius: 15,
+            color: '#3B82F6',
+            trail: [],
+            isHovered: false
+          },
+          {
+            mass: mass3,
+            x: 200,
+            y: 0,
+            z: 0,
+            vx: 0,
+            vy: 0,
+            vz: 0,
+            radius: 15,
+            color: '#EC4899',
+            trail: [],
+            isHovered: false
+          }
+        ];
+        
+        // 重置视图
+        zoom = 1;
+        cameraZ = 500;
+      });
+      
+      // 速度控制
+      const speedSlider = document.getElementById('speedSlider');
+      const speedValue = document.getElementById('speedValue');
+      
+      speedSlider.addEventListener('input', () => {
+        timeStep = parseFloat(speedSlider.value) * 0.01;
+        speedValue.textContent = `${speedSlider.value}x`;
+      });
+      
+      // 子步控制
+      const substepsSlider = document.getElementById('substepsSlider');
+      const substepsValue = document.getElementById('substepsValue');
+      
+      substepsSlider.addEventListener('input', () => {
+        substeps = parseInt(substepsSlider.value);
+        substepsValue.textContent = substeps;
+      });
+      
+      // 质量控制
+      const massSliders = [
+        document.getElementById('mass1Slider'),
+        document.getElementById('mass2Slider'),
+        document.getElementById('mass3Slider')
+      ];
+      
+      const massValues = [
+        document.getElementById('mass1Value'),
+        document.getElementById('mass2Value'),
+        document.getElementById('mass3Value')
+      ];
+      
+      massSliders.forEach((slider, index) => {
+        slider.addEventListener('input', () => {
+          bodies[index].mass = parseFloat(slider.value);
+          massValues[index].textContent = slider.value;
+        });
+      });
+      
+      // 轨迹控制
+      document.getElementById('showTrail').addEventListener('change', (e) => {
+        showTrail = e.target.checked;
+      });
+      
+      // 轨迹长度控制
+      document.getElementById('trailLength').addEventListener('input', (e) => {
+        trailLength = parseInt(e.target.value);
+        document.getElementById('trailLengthValue').textContent = trailLength;
+        
+        // 截断现有轨迹
+        bodies.forEach(body => {
+          while (body.trail.length > trailLength) {
+            body.trail.shift();
+          }
+        });
+      });
+      
+      // 坐标系显示控制
+      document.getElementById('showCoordinates').addEventListener('change', (e) => {
+        showCoordinates = e.target.checked;
+      });
+      
+      // 视觉效果控制
+      document.getElementById('lightMode').addEventListener('change', (e) => {
+        lightMode = e.target.checked;
+      });
+      
+      document.getElementById('rayTraceMode').addEventListener('change', (e) => {
+        rayTraceMode = e.target.checked;
+      });
+      
+      document.getElementById('softenEffect').addEventListener('change', (e) => {
+        softenEffect = e.target.checked;
+      });
+      
+      // 缩放控制
+      document.getElementById('zoomIn').addEventListener('click', () => {
+        zoom *= 1.2;
+      });
+      
+      document.getElementById('zoomOut').addEventListener('click', () => {
+        zoom /= 1.2;
+      });
+      
+      document.getElementById('resetView').addEventListener('click', () => {
+        zoom = 1;
+        cameraZ = 500;
+      });
+      
+      // 鼠标悬停检测
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // 重置所有悬停状态
+        bodies.forEach(body => body.isHovered = false);
+        
+        // 检测哪个天体被鼠标悬停
+        bodies.forEach(body => {
+          const projected = project3DTo2D(body.x, body.y, body.z);
+          const radius = body.radius * projected.scale;
+          
+          // 简单碰撞检测
+          const dx = mouseX - projected.x;
+          const dy = mouseY - projected.y;
+          const distance = Math.sqrt(dx*dx + dy*dy);
+          
+          if (distance < radius * 1.5) {
+            body.isHovered = true;
+          }
+        });
+      });
+      
+      // 鼠标点击旋转视角
+      let isDragging = false;
+      let lastX, lastY;
+      let cameraAngleX = 0;
+      let cameraAngleY = 0;
+      
+      canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+      });
+      
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const deltaX = e.clientX - lastX;
+        const deltaY = e.clientY - lastY;
+        
+        cameraAngleX += deltaY * 0.5;
+        cameraAngleY += deltaX * 0.5;
+        
+        // 限制角度范围
+        cameraAngleX = Math.max(-80, Math.min(80, cameraAngleX));
+        
+        lastX = e.clientX;
+        lastY = e.clientY;
+      });
+      
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+      
+      // 根据相机角度更新相机Z位置（模拟旋转）
+      function updateCameraPosition() {
+        const angleXRad = cameraAngleX * Math.PI / 180;
+        const angleYRad = cameraAngleY * Math.PI / 180;
+        
+        cameraZ = 500 / Math.cos(angleXRad);
+      }
+      
+      // 每帧更新相机位置
+      setInterval(updateCameraPosition, 16);
+    });
+  </script>
+</body>
+</html>

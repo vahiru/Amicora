@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>未来科技身份卡生成器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义主题 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tech: {
+              blue: '#00a8ff',
+              purple: '#9c88ff',
+              green: '#00d2d3',
+              red: '#ff3f34',
+              orange: '#ffa801',
+              dark: '#10121b',
+              medium: '#1e2738',
+              light: '#2f3c54'
+            }
+          },
+          fontFamily: {
+            future: ['Orbitron', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['Inter', 'sans-serif']
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'scan': 'scan 4s linear infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'noise': 'noise 0.1s infinite'
+          },
+          keyframes: {
+            glow: {
+              '0%': { boxShadow: '0 0 5px currentColor, 0 0 10px currentColor' },
+              '100%': { boxShadow: '0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor' }
+            },
+            scan: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100%)' }
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' }
+            },
+            noise: {
+              '0%': { backgroundPosition: '0 0' },
+              '100%': { backgroundPosition: '100% 100%' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .card-bg {
+        background-image: 
+          radial-gradient(circle at 10% 20%, rgba(0, 168, 255, 0.1) 0%, transparent 20%),
+          radial-gradient(circle at 90% 80%, rgba(156, 136, 255, 0.1) 0%, transparent 20%);
+        background-color: theme('colors.tech.dark');
+      }
+      .grid-bg {
+        background-image: 
+          linear-gradient(rgba(0, 168, 255, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 168, 255, 0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      .scanline {
+        position: relative;
+        overflow: hidden;
+      }
+      .scanline::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        animation: scan 4s linear infinite;
+      }
+      .tech-border {
+        position: relative;
+        border: 1px solid rgba(0, 168, 255, 0.3);
+        box-shadow: 0 0 15px rgba(0, 168, 255, 0.1);
+      }
+      .tech-border::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 1px solid rgba(156, 136, 255, 0.3);
+        margin: -2px;
+        pointer-events: none;
+        opacity: 0.7;
+      }
+      .noise-overlay {
+        position: relative;
+      }
+      .noise-overlay::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.05;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        animation: noise 0.1s infinite;
+      }
+      .gradient-text {
+        background: linear-gradient(90deg, #00a8ff, #9c88ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .neon-button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .neon-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 168, 255, 0.2), transparent);
+        transition: all 0.6s ease;
+      }
+      .neon-button:hover::before {
+        left: 100%;
+      }
+    }
+  </style>
+  
+  <!-- 外部字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #10121b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 168, 255, 0.5);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 168, 255, 0.7);
+    }
+    
+    /* 身份卡样式 */
+    .id-card {
+      transition: all 0.5s ease;
+      transform-style: preserve-3d;
+    }
+    
+    .id-card:hover {
+      transform: translateY(-5px) rotateY(5deg);
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* 二维码样式 */
+    .qrcode {
+      filter: invert(1) hue-rotate(180deg) brightness(1.2);
+      opacity: 0.8;
+    }
+    
+    /* 数据标签样式 */
+    .data-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+    
+    /* 模板切换动画 */
+    .template-transition {
+      transition: all 0.3s ease-in-out;
+    }
+    
+    /* 输入框焦点效果 */
+    .tech-input:focus {
+      box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.5);
+    }
+    
+    /* 加载动画 */
+    .loader {
+      border-top-color: #00a8ff;
+      animation: spinner 0.6s linear infinite;
+    }
+    
+    @keyframes spinner {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-tech-dark text-gray-200 min-h-screen">
+  <!-- 顶部导航 -->
+  <header class="sticky top-0 z-40 bg-tech-dark/80 backdrop-blur-md border-b border-tech-blue/20">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i class="fa fa-id-card text-tech-blue text-2xl"></i>
+        <h1 class="text-xl font-future font-bold text-tech-blue">
+          <span class="gradient-text">TECH ID</span>
+        </h1>
+      </div>
+      
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="#templates" class="text-gray-300 hover:text-tech-blue transition-colors duration-300">模板</a>
+        <a href="#customize" class="text-gray-300 hover:text-tech-blue transition-colors duration-300">自定义</a>
+        <a href="#download" class="text-gray-300 hover:text-tech-blue transition-colors duration-300">下载</a>
+        <a href="#gallery" class="text-gray-300 hover:text-tech-blue transition-colors duration-300">画廊</a>
+      </nav>
+      
+      <div class="flex items-center space-x-4">
+        <button id="themeToggle" class="p-2 rounded-full hover:bg-tech-light/20 transition-colors">
+          <i class="fa fa-moon-o text-tech-blue"></i>
+        </button>
+        <button id="menuToggle" class="md:hidden p-2 rounded-full hover:bg-tech-light/20 transition-colors">
+          <i class="fa fa-bars text-tech-blue"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div id="mobileMenu" class="hidden md:hidden bg-tech-medium/95 backdrop-blur-md border-b border-tech-blue/20">
+      <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+        <a href="#templates" class="py-2 text-gray-300 hover:text-tech-blue transition-colors duration-300">模板</a>
+        <a href="#customize" class="py-2 text-gray-300 hover:text-tech-blue transition-colors duration-300">自定义</a>
+        <a href="#download" class="py-2 text-gray-300 hover:text-tech-blue transition-colors duration-300">下载</a>
+        <a href="#gallery" class="py-2 text-gray-300 hover:text-tech-blue transition-colors duration-300">画廊</a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- 英雄区 -->
+    <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden grid-bg mb-12">
+      <div class="absolute inset-0 bg-gradient-to-b from-tech-dark/80 to-tech-dark z-10"></div>
+      
+      <div class="container mx-auto px-4 py-16 relative z-20 text-center">
+        <h1 class="text-4xl md:text-5xl font-future font-bold mb-6 text-tech-blue animate-glow">
+          未来科技身份卡生成器
+        </h1>
+        <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          自定义您的未来身份，创建独特的高科技身份卡，探索无限可能
+        </p>
+        <a href="#customize" class="neon-button inline-block bg-tech-blue/10 hover:bg-tech-blue/20 text-tech-blue border border-tech-blue/30 px-8 py-3 rounded-md font-medium transition-all">
+          立即创建
+        </a>
+      </div>
+      
+      <!-- 装饰元素 -->
+      <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-tech-blue/5 rounded-full blur-3xl animate-float"></div>
+      <div class="absolute -top-10 -left-10 w-64 h-64 bg-tech-purple/5 rounded-full blur-3xl animate-float" style="animation-delay: 2s"></div>
+    </section>
+    
+    <!-- 身份卡预览和自定义区 -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+      <!-- 左侧：预览区 -->
+      <div class="lg:col-span-7 flex flex-col items-center">
+        <h2 class="text-2xl font-future text-tech-blue mb-6">身份卡预览</h2>
+        
+        <!-- 身份卡容器 -->
+        <div class="relative mb-8 perspective-1000">
+          <div id="idCard" class="id-card tech-border noise-overlay scanline w-full max-w-md bg-tech-medium rounded-lg overflow-hidden shadow-xl">
+            <!-- 身份卡头部 -->
+            <div class="bg-gradient-to-r from-tech-blue/80 to-tech-purple/80 p-4 relative">
+              <div class="flex justify-between items-center">
+                <div>
+                  <h3 class="text-xl font-future font-bold text-white">GLOBAL TECH</h3>
+                  <p class="text-sm text-white/80">IDENTIFICATION CARD</p>
+                </div>
+                <div class="w-12 h-12 bg-tech-dark rounded-full flex items-center justify-center border-2 border-white/50">
+                  <i class="fa fa-user text-white text-xl"></i>
+                </div>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-tech-blue via-tech-purple to-tech-green"></div>
+            </div>
+            
+            <!-- 身份卡主体 -->
+            <div class="p-6">
+              <div class="flex space-x-6 mb-6">
+                <div class="w-24 h-24 bg-tech-dark rounded-md overflow-hidden flex items-center justify-center border border-tech-blue/50">
+                  <img id="avatarPreview" src="https://ui-avatars.com/api/?name=User&background=00a8ff&color=ffffff" alt="Avatar" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1">
+                  <div class="mb-2">
+                    <p class="data-label text-tech-blue/80">NAME</p>
+                    <p id="nameDisplay" class="text-lg font-medium">未知用户</p>
+                  </div>
+                  <div>
+                    <p class="data-label text-tech-blue/80">IDENTITY</p>
+                    <p id="roleDisplay" class="text-sm">公民 / 访客</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 身份信息 -->
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p class="data-label text-tech-blue/80">ID NUMBER</p>
+                  <p id="idNumberDisplay" class="font-mono text-sm">GT-2025-XXXX</p>
+                </div>
+                <div>
+                  <p class="data-label text-tech-blue/80">CLEARANCE</p>
+                  <p id="clearanceDisplay" class="font-mono text-sm">LEVEL 3</p>
+                </div>
+                <div>
+                  <p class="data-label text-tech-blue/80">VALID UNTIL</p>
+                  <p id="validUntilDisplay" class="text-sm">2030-12-31</p>
+                </div>
+                <div>
+                  <p class="data-label text-tech-blue/80">LOCATION</p>
+                  <p id="locationDisplay" class="text-sm">新上海 / 亚洲区</p>
+                </div>
+              </div>
+              
+              <!-- 二维码区域 -->
+              <div class="flex justify-between items-center pt-4 border-t border-tech-light/50">
+                <div>
+                  <p class="data-label text-tech-blue/80">SIGNATURE</p>
+                  <div class="w-24 h-8 mt-1 bg-tech-dark/50 rounded flex items-center justify-center">
+                    <span class="text-xs text-white/50">数字签名</span>
+                  </div>
+                </div>
+                <div class="w-16 h-16 bg-white/5 rounded flex items-center justify-center">
+                  <div id="qrcodeDisplay" class="qrcode w-full h-full">
+                    <!-- 二维码将在这里显示 -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=GT-2025-XXXX" alt="QR Code" class="w-full h-full">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 身份卡底部 -->
+            <div class="bg-tech-dark p-3">
+              <div class="flex justify-between items-center">
+                <p class="text-xs text-white/60 font-mono">© 2025 Global Tech Corporation</p>
+                <div class="flex space-x-2">
+                  <span class="w-3 h-3 bg-tech-red rounded-full"></span>
+                  <span class="w-3 h-3 bg-tech-orange rounded-full"></span>
+                  <span class="w-3 h-3 bg-tech-green rounded-full"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 模板选择 -->
+        <div id="templates" class="w-full">
+          <h3 class="text-xl font-future text-tech-blue mb-4">选择模板</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="template-option tech-border rounded-md p-3 cursor-pointer hover:bg-tech-light/20 transition-all active bg-tech-light/20 border-tech-blue">
+              <div class="w-full h-20 bg-gradient-to-r from-tech-blue/80 to-tech-purple/80 rounded-md flex items-center justify-center">
+                <span class="text-white text-xs font-future">STANDARD</span>
+              </div>
+              <p class="text-center text-sm mt-2">标准科技</p>
+            </div>
+            <div class="template-option tech-border rounded-md p-3 cursor-pointer hover:bg-tech-light/20 transition-all">
+              <div class="w-full h-20 bg-gradient-to-r from-tech-green/80 to-tech-blue/80 rounded-md flex items-center justify-center">
+                <span class="text-white text-xs font-future">SECURITY</span>
+              </div>
+              <p class="text-center text-sm mt-2">安全部门</p>
+            </div>
+            <div class="template-option tech-border rounded-md p-3 cursor-pointer hover:bg-tech-light/20 transition-all">
+              <div class="w-full h-20 bg-gradient-to-r from-tech-purple/80 to-tech-red/80 rounded-md flex items-center justify-center">
+                <span class="text-white text-xs font-future">EXECUTIVE</span>
+              </div>
+              <p class="text-center text-sm mt-2">高管级别</p>
+            </div>
+            <div class="template-option tech-border rounded-md p-3 cursor-pointer hover:bg-tech-light/20 transition-all">
+              <div class="w-full h-20 bg-gradient-to-r from-tech-orange/80 to-tech-red/80 rounded-md flex items-center justify-center">
+                <span class="text-white text-xs font-future">MILITARY</span>
+              </div>
+              <p class="text-center text-sm mt-2">军事部门</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 右侧：自定义区 -->
+      <div class="lg:col-span-5">
+        <h2 id="customize" class="text-2xl font-future text-tech-blue mb-6">自定义信息</h2>
+        
+        <div class="tech-border bg-tech-medium/50 rounded-lg p-6">
+          <form id="customForm">
+            <!-- 基本信息 -->
+            <div class="mb-6">
+              <h3 class="text-lg font-medium text-tech-blue mb-4">基本信息</h3>
+              
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-1" for="fullName">全名</label>
+                  <input type="text" id="fullName" class="tech-input w-full bg-tech-dark border border-tech-light rounded-md px-3 py-2 focus:outline-none" placeholder="输入您的全名" value="未知用户">
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-1" for="role">身份/职位</label>
+                  <input type="text" id="role" class="tech-input w-full bg-tech-dark border border-tech-light rounded-md px-3 py-2 focus:outline-none" placeholder="例如：高级工程师 / 系统管理员" value="公民 / 访客">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1" for="idNumber">ID编号</label>
+                    <input type="text" id="idNumber" class="tech-input w-full bg-tech-dark border border-tech-light rounded-md px-3 py-2 focus:outline-none font-mono" placeholder="例如：GT-2025-1234" value="GT-2025-XXXX">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1" for="clearance">安全级别</label>
+                    <select id="clearance" class="tech-input w-full bg-tech-dark border border-tech-light rounded-md px-3 py-2 focus:outline-none">
+                      <option value="LEVEL 1">LEVEL 1 (基础)</option>
+                      <option value="LEVEL 2">LEVEL 2 (标准)</option>
+                      <option value="LEVEL 3" selected>LEVEL 3 (高级)</option>
+                      <option value="LEVEL 4">LEVEL 4 (机密)</option>
+                      <option value="LEVEL 5">LEVEL 5 (最高机密)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 高级信息 -->
+            <div class="mb-6">
+              <h3 class="text-lg font-medium text-tech-blue mb-4">高级信息</h3>
+              
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1" for="validUntil">有效期至</label>
+                    <input type="date" id="validUntil" class="tech-input w-full bg-tech-dark border border-tech-light rounded-md px-3 py-2 focus:outline-none" value="2030-12-31">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1" for="location">位置</label>
+                    <input type="text" id="location" class="tech-input w-full bg-tech-dark border border-tech-light rounded-md px-3 py-2 focus:outline-none" placeholder="例如：新上海 / 亚洲区" value="新上海 / 亚洲区">
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-1" for="avatar">头像</label>
+                  <div class="flex items-center space-x-4">
+                    <input type="file" id="avatar" accept="image/*" class="hidden" onchange="previewAvatar(event)">
+                    <label for="avatar" class="neon-button bg-tech-blue/10 hover:bg-tech-blue/20 text-tech-blue border border-tech-blue/30 px-4 py-2 rounded-md text-sm cursor-pointer transition-all">
+                      <i class="fa fa-upload mr-1"></i>上传图片
+                    </label>
+                    <button type="button" id="generateAvatarBtn" class="bg-tech-light/50 hover:bg-tech-light/70 text-gray-300 border border-tech-light/30 px-4 py-2 rounded-md text-sm transition-all">
+                      <i class="fa fa-refresh mr-1"></i>生成头像
+                    </button>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-1" for="bgColor">主题颜色</label>
+                  <div class="grid grid-cols-5 gap-2">
+                    <button type="button" class="color-option w-full h-10 rounded-md bg-tech-blue cursor-pointer border-2 border-white/50" data-color="blue"></button>
+                    <button type="button" class="color-option w-full h-10 rounded-md bg-tech-purple cursor-pointer border-2 border-transparent" data-color="purple"></button>
+                    <button type="button" class="color-option w-full h-10 rounded-md bg-tech-green cursor-pointer border-2 border-transparent" data-color="green"></button>
+                    <button type="button" class="color-option w-full h-10 rounded-md bg-tech-red cursor-pointer border-2 border-transparent" data-color="red"></button>
+                    <button type="button" class="color-option w-full h-10 rounded-md bg-tech-orange cursor-pointer border-2 border-transparent" data-color="orange"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+              <button type="button" id="resetBtn" class="flex-1 bg-tech-light/50 hover:bg-tech-light/70 text-gray-300 border border-tech-light/30 px-4 py-3 rounded-md transition-all">
+                <i class="fa fa-refresh mr-1"></i>重置
+              </button>
+              <button type="button" id="applyBtn" class="flex-1 neon-button bg-tech-blue/10 hover:bg-tech-blue/20 text-tech-blue border border-tech-blue/30 px-4 py-3 rounded-md transition-all">
+                <i class="fa fa-check mr-1"></i>应用更改
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <!-- 下载选项 -->
+        <div id="download" class="tech-border bg-tech-medium/50 rounded-lg p-6 mt-6">
+          <h3 class="text-lg font-medium text-tech-blue mb-4">下载选项</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">格式选择</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" class="download-option bg-tech-dark border border-tech-blue/50 rounded-md px-3 py-2 text-sm hover:bg-tech-light/20 transition-all active bg-tech-light/20 border-tech-blue">
+                  PNG
+                </button>
+                <button type="button" class="download-option bg-tech-dark border border-tech-blue/50 rounded-md px-3 py-2 text-sm hover:bg-tech-light/20 transition-all">
+                  JPG
+                </button>
+                <button type="button" class="download-option bg-tech-dark border border-tech-blue/50 rounded-md px-3 py-2 text-sm hover:bg-tech-light/20 transition-all">
+                  PDF
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">分辨率</label>
+              <select class="tech-input w-full bg-tech-dark border border-tech-light rounded-md px-3 py-2 focus:outline-none">
+                <option value="low">低 (600×400)</option>
+                <option value="medium" selected>中 (1200×800)</option>
+                <option value="high">高 (2400×1600)</option>
+              </select>
+            </div>
+            
+            <button id="downloadBtn" class="neon-button w-full bg-tech-blue/20 hover:bg-tech-blue/30 text-white border border-tech-blue/50 px-4 py-3 rounded-md transition-all">
+              <i class="fa fa-download mr-1"></i>下载身份卡
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 画廊区 -->
+    <section id="gallery" class="mb-16">
+      <h2 class="text-2xl font-future text-tech-blue mb-6">创意画廊</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- 画廊项目1 -->
+        <div class="tech-border rounded-lg overflow-hidden group hover:shadow-lg transition-all">
+          <div class="h-48 overflow-hidden">
+            <img src="https://picsum.photos/id/1/600/400" alt="未来身份卡示例" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-4 bg-tech-medium/50">
+            <h3 class="font-medium text-tech-blue">企业高管身份卡</h3>
+            <p class="text-sm text-gray-400 mt-1">LEVEL 5 最高安全级别</p>
+          </div>
+        </div>
+        
+        <!-- 画廊项目2 -->
+        <div class="tech-border rounded-lg overflow-hidden group hover:shadow-lg transition-all">
+          <div class="h-48 overflow-hidden">
+            <img src="https://picsum.photos/id/2/600/400" alt="未来身份卡示例" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-4 bg-tech-medium/50">
+            <h3 class="font-medium text-tech-green">技术部门身份卡</h3>
+            <p class="text-sm text-gray-400 mt-1">研发团队专用设计</p>
+          </div>
+        </div>
+        
+        <!-- 画廊项目3 -->
+        <div class="tech-border rounded-lg overflow-hidden group hover:shadow-lg transition-all">
+          <div class="h-48 overflow-hidden">
+            <img src="https://picsum.photos/id/3/600/400" alt="未来身份卡示例" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-4 bg-tech-medium/50">
+            <h3 class="font-medium text-tech-red">军事安全身份卡</h3>
+            <p class="text-sm text-gray-400 mt-1">特殊行动部门授权</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-8">
+        <button class="neon-button bg-tech-light/20 hover:bg-tech-light/30 text-gray-300 border border-tech-light/30 px-6 py-3 rounded-md transition-all">
+          查看更多创意 <i class="fa fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+    </section>
+    
+    <!-- 功能介绍 -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-future text-tech-blue mb-8 text-center">强大功能</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="tech-border bg-tech-medium/30 rounded-lg p-6 text-center hover:bg-tech-medium/50 transition-all">
+          <div class="w-16 h-16 bg-tech-blue/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa fa-sliders text-tech-blue text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-medium text-tech-blue mb-2">完全自定义</h3>
+          <p class="text-gray-400">自定义所有信息字段、颜色主题和布局样式，创建独一无二的身份卡</p>
+        </div>
+        
+        <div class="tech-border bg-tech-medium/30 rounded-lg p-6 text-center hover:bg-tech-medium/50 transition-all">
+          <div class="w-16 h-16 bg-tech-purple/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa fa-download text-tech-purple text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-medium text-tech-purple mb-2">多种格式导出</h3>
+          <p class="text-gray-400">支持PNG、JPG、PDF等多种格式导出，满足不同场景需求</p>
+        </div>
+        
+        <div class="tech-border bg-tech-medium/30 rounded-lg p-6 text-center hover:bg-tech-medium/50 transition-all">
+          <div class="w-16 h-16 bg-tech-green/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa fa-share-alt text-tech-green text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-medium text-tech-green mb-2">一键分享</h3>
+          <p class="text-gray-400">直接分享到社交媒体平台，展示您的未来科技身份</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <!-- 页脚 -->
+  <footer class="bg-tech-medium/50 border-t border-tech-blue/20 py-8">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <h3 class="text-tech-blue font-future mb-4">TECH ID</h3>
+          <p class="text-gray-400 text-sm">
+            未来科技身份卡生成器，为您创建独特的高科技身份标识，探索未来身份认证的无限可能。
+          </p>
+        </div>
+        
+        <div>
+          <h3 class="text-tech-blue font-future mb-4">快速链接</h3>
+          <nav class="grid grid-cols-2 gap-2 text-sm">
+            <a href="#templates" class="text-gray-400 hover:text-tech-blue transition-colors">模板库</a>
+            <a href="#customize" class="text-gray-400 hover:text-tech-blue transition-colors">自定义工具</a>
+            <a href="#download" class="text-gray-400 hover:text-tech-blue transition-colors">下载中心</a>
+            <a href="#gallery" class="text-gray-400 hover:text-tech-blue transition-colors">创意画廊</a>
+            <a href="#" class="text-gray-400 hover:text-tech-blue transition-colors">API文档</a>
+            <a href="#" class="text-gray-400 hover:text-tech-blue transition-colors">关于我们</a>
+          </nav>
+        </div>
+        
+        <div>
+          <h3 class="text-tech-blue font-future mb-4">订阅更新</h3>
+          <p class="text-gray-400 text-sm mb-3">获取最新模板和功能更新通知</p>
+          <div class="flex">
+            <input type="email" placeholder="您的邮箱地址" class="bg-tech-dark border border-tech-blue/30 rounded-l-md px-3 py-2 text-sm flex-1 focus:outline-none focus:border-tech-blue">
+            <button class="bg-tech-blue hover:bg-tech-blue/80 text-white px-3 py-2 rounded-r-md transition-colors">
+              订阅
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-t border-tech-blue/20 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-500 text-sm mb-4 md:mb-0">© 2025 TECH ID Generator | 未来科技身份卡生成器</p>
+        <div class="flex space-x-4">
+          <a href="#" class="text-gray-500 hover:text-tech-blue transition-colors">
+            <i class="fa fa-twitter"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-tech-blue transition-colors">
+            <i class="fa fa-github"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-tech-blue transition-colors">
+            <i class="fa fa-dribbble"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-tech-blue transition-colors">
+            <i class="fa fa-instagram"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- 下载模态框 -->
+  <div id="downloadModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center">
+    <div class="tech-border bg-tech-medium rounded-lg p-6 max-w-md w-full">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-tech-blue/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fa fa-download text-tech-blue text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-future text-tech-blue">正在生成身份卡</h3>
+        <p class="text-gray-400 mt-2">请稍候，我们正在为您生成高质量的身份卡图片...</p>
+      </div>
+      
+      <div class="flex justify-center mb-6">
+        <div class="loader w-12 h-12 border-4 border-tech-light rounded-full"></div>
+      </div>
+      
+      <div class="text-center">
+        <button id="closeModalBtn" class="neon-button bg-tech-light/20 hover:bg-tech-light/30 text-gray-300 border border-tech-light/30 px-6 py-2 rounded-md transition-all">
+          取消
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 脚本部分 -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  
+  <script>
+    // 全局变量
+    let currentColorTheme = 'blue';
+    
+    // DOM加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      // 事件监听
+      setupEventListeners();
+      
+      // 移动端菜单切换
+      document.getElementById('menuToggle').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenu.classList.toggle('hidden');
+      });
+      
+      // 应用初始表单数据
+      applyFormData();
+    });
+    
+    // 设置事件监听
+    function setupEventListeners() {
+      // 应用更改按钮
+      document.getElementById('applyBtn').addEventListener('click', applyFormData);
+      
+      // 重置按钮
+      document.getElementById('resetBtn').addEventListener('click', resetForm);
+      
+      // 生成头像按钮
+      document.getElementById('generateAvatarBtn').addEventListener('click', generateRandomAvatar);
+      
+      // 颜色选项点击
+      document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // 移除所有选中状态
+          document.querySelectorAll('.color-option').forEach(opt => {
+            opt.classList.remove('border-white/50');
+            opt.classList.add('border-transparent');
+          });
+          
+          // 添加当前选中状态
+          this.classList.remove('border-transparent');
+          this.classList.add('border-white/50');
+          
+          // 更新主题颜色
+          currentColorTheme = this.dataset.color;
+          updateColorTheme(currentColorTheme);
+        });
+      });
+      
+      // 模板选项点击
+      document.querySelectorAll('.template-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // 移除所有选中状态
+          document.querySelectorAll('.template-option').forEach(opt => {
+            opt.classList.remove('bg-tech-light/20', 'border-tech-blue');
+          });
+          
+          // 添加当前选中状态
+          this.classList.add('bg-tech-light/20', 'border-tech-blue');
+          
+          // 应用模板（这里可以根据需要实现不同模板的切换）
+          const templateName = this.querySelector('p').textContent.trim();
+          applyTemplate(templateName);
+        });
+      });
+      
+      // 下载按钮点击
+      document.getElementById('downloadBtn').addEventListener('click', downloadIdCard);
+      
+      // 模态框关闭按钮
+      document.getElementById('closeModalBtn').addEventListener('click', function() {
+        document.getElementById('downloadModal').classList.add('hidden');
+      });
+      
+      // 平滑滚动
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          
+          const targetId = this.getAttribute('href');
+          const targetElement = document.querySelector(targetId);
+          
+          if (targetElement) {
+            // 关闭移动端菜单（如果打开）
+            document.getElementById('mobileMenu').classList.add('hidden');
+            
+            // 滚动到目标位置
+            targetElement.scrollIntoView({
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
+      
+      // 下载选项点击
+      document.querySelectorAll('.download-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // 移除所有选中状态
+          document.querySelectorAll('.download-option').forEach(opt => {
+            opt.classList.remove('bg-tech-light/20', 'border-tech-blue');
+          });
+          
+          // 添加当前选中状态
+          this.classList.add('bg-tech-light/20', 'border-tech-blue');
+        });
+      });
+    }
+    
+    // 应用表单数据到预览
+    function applyFormData() {
+      // 获取表单数据
+      const fullName = document.getElementById('fullName').value || '未知用户';
+      const role = document.getElementById('role').value || '公民 / 访客';
+      const idNumber = document.getElementById('idNumber').value || 'GT-2025-XXXX';
+      const clearance = document.getElementById('clearance').value || 'LEVEL 3';
+      const validUntil = document.getElementById('validUntil').value || '2030-12-31';
+      const location = document.getElementById('location').value || '新上海 / 亚洲区';
+      
+      // 更新预览显示
+      document.getElementById('nameDisplay').textContent = fullName;
+      document.getElementById('roleDisplay').textContent = role;
+      document.getElementById('idNumberDisplay').textContent = idNumber;
+      document.getElementById('clearanceDisplay').textContent = clearance;
+      document.getElementById('validUntilDisplay').textContent = validUntil;
+      document.getElementById('locationDisplay').textContent = location;
+      
+      // 更新二维码
+      updateQRCode(idNumber);
+      
+      // 更新头像文字
+      updateAvatarText(fullName);
+      
+      // 显示成功提示
+      alert('身份卡信息已更新！');
+    }
+    
+    // 重置表单
+    function resetForm() {
+      // 重置表单值
+      document.getElementById('fullName').value = '未知用户';
+      document.getElementById('role').value = '公民 / 访客';
+      document.getElementById('idNumber').value = 'GT-2025-XXXX';
+      document.getElementById('clearance').value = 'LEVEL 3';
+      document.getElementById('validUntil').value = '2030-12-31';
+      document.getElementById('location').value = '新上海 / 亚洲区';
+      
+      // 重置颜色主题
+      currentColorTheme = 'blue';
+      document.querySelectorAll('.color-option').forEach(opt => {
+        opt.classList.remove('border-white/50');
+        opt.classList.add('border-transparent');
+        if (opt.dataset.color === 'blue') {
+          opt.classList.remove('border-transparent');
+          opt.classList.add('border-white/50');
+        }
+      });
+      updateColorTheme('blue');
+      
+      // 重置头像
+      document.getElementById('avatarPreview').src = 'https://ui-avatars.com/api/?name=User&background=00a8ff&color=ffffff';
+      
+      // 应用重置后的数据
+      applyFormData();
+    }
+    
+    // 生成随机头像
+    function generateRandomAvatar() {
+      const fullName = document.getElementById('fullName').value || '未知用户';
+      const nameInitials = fullName.split(' ').map(n => n[0]).join('').substring(0, 2);
+      
+      // 随机颜色
+      const colors = ['00a8ff', '9c88ff', '00d2d3', 'ff3f34', 'ffa801'];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      
+      // 更新头像
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=${randomColor}&color=ffffff`;
+      document.getElementById('avatarPreview').src = avatarUrl;
+    }
+    
+    // 更新头像文字
+    function updateAvatarText(name) {
+      const nameInitials = name.split(' ').map(n => n[0]).join('').substring(0, 2);
+      const colorHex = getColorHex(currentColorTheme);
+      
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${colorHex}&color=ffffff`;
+      document.getElementById('avatarPreview').src = avatarUrl;
+    }
+    
+    // 更新二维码
+    function updateQRCode(data) {
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(data)}`;
+      document.querySelector('#qrcodeDisplay img').src = qrCodeUrl;
+    }
+    
+    // 更新颜色主题
+    function updateColorTheme(theme) {
+      const idCard = document.getElementById('idCard');
+      const colorClasses = ['tech-blue', 'tech-purple', 'tech-green', 'tech-red', 'tech-orange'];
+      
+      // 更新头部渐变
+      const headerGradient = document.querySelector('.bg-gradient-to-r');
+      const colorMap = {
+        blue: 'from-tech-blue/80 to-tech-purple/80',
+        purple: 'from-tech-purple/80 to-tech-red/80',
+        green: 'from-tech-green/80 to-tech-blue/80',
+        red: 'from-tech-red/80 to-tech-orange/80',
+        orange: 'from-tech-orange/80 to-tech-red/80'
+      };
+      
+      // 移除所有渐变类
+      headerGradient.className = 'bg-gradient-to-r p-4 relative';
+      headerGradient.classList.add(colorMap[theme]);
+      
+      // 更新底部渐变线
+      const bottomLine = document.querySelector('.bg-gradient-to-r.from-tech-blue');
+      bottomLine.className = 'absolute bottom-0 left-0 right-0 h-1';
+      
+      const bottomLineMap = {
+        blue: 'bg-gradient-to-r from-tech-blue via-tech-purple to-tech-green',
+        purple: 'bg-gradient-to-r from-tech-purple via-tech-blue to-tech-green',
+        green: 'bg-gradient-to-r from-tech-green via-tech-blue to-tech-purple',
+        red: 'bg-gradient-to-r from-tech-red via-tech-orange to-tech-blue',
+        orange: 'bg-gradient-to-r from-tech-orange via-tech-red to-tech-purple'
+      };
+      
+      bottomLine.classList.add(bottomLineMap[theme].split(' ')[1], bottomLineMap[theme].split(' ')[2], bottomLineMap[theme].split(' ')[3]);
+      
+      // 更新所有数据标签颜色
+      const dataLabels = document.querySelectorAll('.text-tech-blue/80');
+      const textColorMap = {
+        blue: 'text-tech-blue/80',
+        purple: 'text-tech-purple/80',
+        green: 'text-tech-green/80',
+        red: 'text-tech-red/80',
+        orange: 'text-tech-orange/80'
+      };
+      
+      dataLabels.forEach(label => {
+        // 移除所有颜色类
+        colorClasses.forEach(color => {
+          label.classList.remove(`text-${color}/80`);
+        });
+        label.classList.add(textColorMap[theme]);
+      });
+      
+      // 更新边框颜色
+      const borders = document.querySelectorAll('.border-tech-blue/50, .border-tech-blue/30');
+      const borderColorMap = {
+        blue: 'border-tech-blue',
+        purple: 'border-tech-purple',
+        green: 'border-tech-green',
+        red: 'border-tech-red',
+        orange: 'border-tech-orange'
+      };
+      
+      borders.forEach(border => {
+        // 移除所有边框颜色类
+        colorClasses.forEach(color => {
+          border.classList.remove(`border-${color}/50`, `border-${color}/30`);
+        });
+        
+        // 添加新的边框颜色类
+        if (border.classList.contains('border-tech-blue/50')) {
+          border.classList.add(`${borderColorMap[theme]}/50`);
+        } else if (border.classList.contains('border-tech-blue/30')) {
+          border.classList.add(`${borderColorMap[theme]}/30`);
+        }
+      });
+    }
+    
+    // 获取颜色的十六进制值
+    function getColorHex(theme) {
+      const colorMap = {
+        blue: '00a8ff',
+        purple: '9c88ff',
+        green: '00d2d3',
+        red: 'ff3f34',
+        orange: 'ffa801'
+      };
+      
+      return colorMap[theme] || '00a8ff';
+    }
+    
+    // 应用模板
+    function applyTemplate(templateName) {
+      // 根据模板名称设置不同的默认值
+      switch(templateName) {
+        case '标准科技':
+          document.getElementById('clearance').value = 'LEVEL 3';
+          document.getElementById('role').value = '高级工程师 / 系统管理员';
+          break;
+        case '安全部门':
+          document.getElementById('clearance').value = 'LEVEL 4';
+          document.getElementById('role').value = '安全分析师 / 情报专员';
+          document.getElementById('location').value = '安全中心 / 全球总部';
+          break;
+        case '高管级别':
+          document.getElementById('clearance').value = 'LEVEL 5';
+          document.getElementById('role').value = '首席技术官 / 执行董事';
+          document.getElementById('location').value = '高管层 / 全球总部';
+          break;
+        case '军事部门':
+          document.getElementById('clearance').value = 'LEVEL 4';
+          document.getElementById('role').value = '战术指挥官 / 军事顾问';
+          document.getElementById('location').value = '军事基地 / 亚太战区';
+          break;
+      }
+      
+      // 应用更改
+      applyFormData();
+    }
+    
+    // 预览头像
+    function previewAvatar(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('avatarPreview').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // 下载身份卡
+    function downloadIdCard() {
+      // 显示模态框
+      document.getElementById('downloadModal').classList.remove('hidden');
+      
+      // 使用html2canvas捕获身份卡
+      setTimeout(() => {
+        const idCardElement = document.getElementById('idCard');
+        
+        html2canvas(idCardElement, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: null
+        }).then(canvas => {
+          // 创建下载链接
+          const link = document.createElement('a');
+          link.download = `tech_id_card_${Date.now()}.png`;
+          link.href = canvas.toDataURL('image/png');
+          
+          // 关闭模态框
+          document.getElementById('downloadModal').classList.add('hidden');
+          
+          // 触发下载
+          setTimeout(() => {
+            link.click();
+            alert('身份卡已成功下载！');
+          }, 500);
+        });
+      }, 2000); // 模拟处理延迟
+    }
+  </script>
+</body>
+</html>

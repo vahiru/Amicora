@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>磁带回声 | 交互小说</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义主题 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tape: {
+              base: '#121212',
+              reel: '#2a2a2a',
+              label: '#ff3e00',
+              accent: '#00ffcc',
+              glow: '#ff00ff',
+              dark: '#0a0a0a',
+              light: '#e0e0e0'
+            }
+          },
+          fontFamily: {
+            tape: ['Courier New', 'monospace', 'Consolas'],
+            future: ['Orbitron', 'sans-serif']
+          },
+          animation: {
+            'glitch': 'glitch 2s infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'tape-spin': 'tapeSpin 2s linear infinite',
+            'signal-flicker': 'signalFlicker 0.5s infinite alternate',
+            'text-scroll': 'textScroll 15s linear infinite',
+            'noise': 'noise 0.1s infinite'
+          },
+          keyframes: {
+            glitch: {
+              '0%, 100%': { transform: 'translate(0)' },
+              '33%': { transform: 'translate(-5px, 2px)' },
+              '66%': { transform: 'translate(5px, -2px)' }
+            },
+            tapeSpin: {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(360deg)' }
+            },
+            signalFlicker: {
+              '0%': { opacity: 0.7 },
+              '100%': { opacity: 1 }
+            },
+            textScroll: {
+              '0%': { transform: 'translateY(0)' },
+              '100%': { transform: 'translateY(-50%)' }
+            },
+            noise: {
+              '0%': { backgroundPosition: '0 0' },
+              '100%': { backgroundPosition: '100% 100%' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow-glow {
+        text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor;
+      }
+      .tape-edge {
+        background-image: repeating-linear-gradient(
+          45deg,
+          theme('colors.tape.reel'),
+          theme('colors.tape.reel') 10px,
+          theme('colors.tape.base') 10px,
+          theme('colors.tape.base') 20px
+        );
+      }
+      .noise-overlay {
+        position: relative;
+      }
+      .noise-overlay::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.05;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        animation: noise 0.1s infinite;
+      }
+      .scanline {
+        background: linear-gradient(to bottom,
+          transparent 50%,
+          rgba(255, 255, 255, 0.05) 50%);
+        background-size: 100% 4px;
+      }
+      .tape-label {
+        clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+      }
+      .crt-curve {
+        border-radius: 2% / 1%;
+        box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+      }
+    }
+  </style>
+  
+  <!-- 外部字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* 全局样式 */
+    body {
+      background-color: #0a0a0a;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 255, 204, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(255, 62, 0, 0.1) 0%, transparent 20%);
+      color: #e0e0e0;
+      overflow-x: hidden;
+    }
+    
+    /* 磁带效果 */
+    .tape-reel {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #2a2a2a;
+      border: 3px solid #444;
+    }
+    
+    .tape-reel::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background-color: #121212;
+      border: 2px solid #444;
+    }
+    
+    .tape-reel::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: repeating-radial-gradient(
+        circle at center,
+        #444,
+        #444 2px,
+        transparent 2px,
+        transparent 4px
+      );
+    }
+    
+    /* 信号干扰效果 */
+    .glitch-effect {
+      position: relative;
+    }
+    
+    .glitch-effect::before,
+    .glitch-effect::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .glitch-effect::before {
+      left: 2px;
+      text-shadow: -2px 0 #ff00ff;
+      clip: rect(44px, 450px, 56px, 0);
+      animation: glitch-anim 5s infinite linear alternate-reverse;
+    }
+    
+    .glitch-effect::after {
+      left: -2px;
+      text-shadow: -2px 0 #00ffcc;
+      clip: rect(24px, 450px, 36px, 0);
+      animation: glitch-anim 5s infinite linear alternate-reverse;
+      animation-delay: 0.3s;
+    }
+    
+    @keyframes glitch-anim {
+      0% { clip: rect(42px, 9999px, 44px, 0); }
+      5% { clip: rect(12px, 9999px, 59px, 0); }
+      10% { clip: rect(48px, 9999px, 29px, 0); }
+      15% { clip: rect(42px, 9999px, 73px, 0); }
+      20% { clip: rect(63px, 9999px, 27px, 0); }
+      25% { clip: rect(34px, 9999px, 55px, 0); }
+      30% { clip: rect(86px, 9999px, 73px, 0); }
+      35% { clip: rect(20px, 9999px, 20px, 0); }
+      40% { clip: rect(26px, 9999px, 60px, 0); }
+      45% { clip: rect(25px, 9999px, 66px, 0); }
+      50% { clip: rect(57px, 9999px, 98px, 0); }
+      55% { clip: rect(5px, 9999px, 46px, 0); }
+      60% { clip: rect(82px, 9999px, 31px, 0); }
+      65% { clip: rect(54px, 9999px, 27px, 0); }
+      70% { clip: rect(28px, 9999px, 99px, 0); }
+      75% { clip: rect(45px, 9999px, 69px, 0); }
+      80% { clip: rect(23px, 9999px, 85px, 0); }
+      85% { clip: rect(54px, 9999px, 84px, 0); }
+      90% { clip: rect(45px, 9999px, 47px, 0); }
+      95% { clip: rect(37px, 9999px, 20px, 0); }
+      100% { clip: rect(4px, 9999px, 91px, 0); }
+    }
+    
+    /* 对话选择高亮效果 */
+    .choice-option {
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .choice-option::before {
+      content: '';
+      position: absolute;
+      left: -100%;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(0, 255, 204, 0.2), 
+        transparent);
+      transition: all 0.5s ease;
+    }
+    
+    .choice-option:hover::before {
+      left: 100%;
+    }
+    
+    /* 加载动画 */
+    .loading-tape::after {
+      content: '';
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      animation: tapeLoad 1.5s infinite;
+    }
+    
+    @keyframes tapeLoad {
+      0% { content: '|'; }
+      25% { content: '/'; }
+      50% { content: '-'; }
+      75% { content: '\\'; }
+      100% { content: '|'; }
+    }
+    
+    /* 磁带播放进度 */
+    .tape-progress {
+      height: 4px;
+      background: #2a2a2a;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tape-progress::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: var(--progress, 0%);
+      background: linear-gradient(90deg, #00ffcc, #ff00ff);
+    }
+  </style>
+</head>
+<body class="font-tape noise-overlay scanline">
+  <!-- 顶部导航 -->
+  <header class="border-b border-tape-accent/30 bg-tape-dark/80 backdrop-blur-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="tape-reel animate-tape-spin/40">
+          <div class="absolute inset-0 rounded-full border-2 border-dashed border-tape-accent/50"></div>
+        </div>
+        <h1 class="text-2xl font-future font-bold text-tape-accent text-shadow-glow tracking-wider">
+          磁带回声<span class="text-tape-label">_</span>
+        </h1>
+      </div>
+      
+      <div class="flex items-center space-x-6">
+        <button id="rewindBtn" class="text-tape-light hover:text-tape-accent transition-colors" title="倒带">
+          <i class="fa fa-step-backward"></i>
+        </button>
+        <button id="saveBtn" class="text-tape-light hover:text-tape-accent transition-colors" title="保存">
+          <i class="fa fa-floppy-o"></i>
+        </button>
+        <button id="volumeBtn" class="text-tape-light hover:text-tape-accent transition-colors" title="音量">
+          <i class="fa fa-volume-up"></i>
+        </button>
+        <button id="helpBtn" class="text-tape-light hover:text-tape-accent transition-colors" title="帮助">
+          <i class="fa fa-question-circle"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- 磁带容器 -->
+    <div class="max-w-4xl mx-auto relative">
+      <!-- 磁带边缘装饰 -->
+      <div class="tape-edge h-6 rounded-t-lg"></div>
+      
+      <!-- 磁带主体 -->
+      <div class="bg-tape-base border-x border-tape-reel relative crt-curve overflow-hidden">
+        <!-- 左右磁带卷轴 -->
+        <div class="absolute top-1/2 -translate-y-1/2 left-4 z-10">
+          <div class="tape-reel animate-tape-spin" id="leftReel"></div>
+        </div>
+        <div class="absolute top-1/2 -translate-y-1/2 right-4 z-10">
+          <div class="tape-reel animate-tape-spin" id="rightReel"></div>
+        </div>
+        
+        <!-- 磁带内容区 -->
+        <div class="pt-10 pb-8 px-20 relative z-20">
+          <!-- 磁带标签 -->
+          <div class="tape-label bg-tape-label text-tape-dark py-2 px-6 text-center font-future font-bold mb-8 transform -rotate-1">
+            <p>记忆碎片 #042</p>
+          </div>
+          
+          <!-- 故事标题 -->
+          <h2 class="text-3xl font-future text-center mb-10 text-tape-accent text-shadow-glow glitch-effect" data-text="信号迷失">
+            信号迷失
+          </h2>
+          
+          <!-- 故事内容区 -->
+          <div id="storyContent" class="min-h-[300px] mb-10 leading-relaxed text-tape-light animate-signal-flicker">
+            <p class="mb-4">雨丝敲打着锈迹斑斑的金属屋顶，发出规律的嗒嗒声。你坐在昏暗的房间里，指尖抚过一台老式磁带录音机的表面。</p>
+            <p class="mb-4">这是你在废弃的广播站内找到的唯一还能运转的设备。按下播放键的瞬间，电流声嘶嘶作响，随后一个扭曲的声音从扬声器中传出：</p>
+            <p class="my-6 px-4 py-3 bg-tape-reel/30 border-l-4 border-tape-label italic">
+              "……坐标已确认，时间线出现偏差……如果你听到这段录音，说明系统已经崩溃。寻找红色磁带，它是……[信号干扰]……最后的希望……"
+            </p>
+            <p>声音戛然而止，只剩下持续的白噪音。你环顾四周，发现角落里有三个标着不同颜色的磁带盒。</p>
+          </div>
+          
+          <!-- 选择区域 -->
+          <div id="choices" class="space-y-3 mb-6">
+            <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+              <p><span class="text-tape-accent">[1]</span> 拿起红色磁带，上面贴着"禁止播放"的警告标签</p>
+            </div>
+            <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+              <p><span class="text-tape-accent">[2]</span> 选择蓝色磁带，侧面写着"系统备份"</p>
+            </div>
+            <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+              <p><span class="text-tape-accent">[3]</span> 检查黄色磁带，它看起来是空白的</p>
+            </div>
+          </div>
+          
+          <!-- 交互提示 -->
+          <div class="text-center text-tape-light/60 text-sm mt-8">
+            <p>使用方向键选择，回车键确认 | 磁带播放中...</p>
+          </div>
+        </div>
+        
+        <!-- 磁带进度条 -->
+        <div class="tape-progress absolute bottom-0 left-0 right-0" style="--progress: 25%"></div>
+      </div>
+      
+      <!-- 磁带底部边缘 -->
+      <div class="tape-edge h-6 rounded-b-lg transform rotate-180"></div>
+    </div>
+    
+    <!-- 侧边信息栏 -->
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <!-- 故事状态 -->
+      <div class="bg-tape-base/50 border border-tape-reel p-4 rounded">
+        <h3 class="text-tape-accent font-future mb-3 border-b border-tape-accent/30 pb-2">故事状态</h3>
+        <div class="space-y-2 text-sm">
+          <p>章节: <span class="text-tape-label">1/7</span></p>
+          <p>路径: <span class="text-tape-light">初始选择</span></p>
+          <p>已收集线索: <span class="text-tape-light">1/12</span></p>
+        </div>
+      </div>
+      
+      <!-- 磁带日志 -->
+      <div class="bg-tape-base/50 border border-tape-reel p-4 rounded">
+        <h3 class="text-tape-accent font-future mb-3 border-b border-tape-accent/30 pb-2">磁带日志</h3>
+        <div class="text-sm max-h-24 overflow-y-auto">
+          <p class="mb-1"><span class="text-tape-label">[19:42]</span> 发现广播 station</p>
+          <p><span class="text-tape-label">[19:45]</span> 启动录音机</p>
+        </div>
+      </div>
+      
+      <!-- 系统提示 -->
+      <div class="bg-tape-base/50 border border-tape-reel p-4 rounded">
+        <h3 class="text-tape-accent font-future mb-3 border-b border-tape-accent/30 pb-2">系统提示</h3>
+        <p class="text-sm text-tape-light/80">
+          磁带可能包含损坏的信息片段，某些选择会导致信号永久失真
+        </p>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 页脚 -->
+  <footer class="mt-16 border-t border-tape-accent/30 bg-tape-dark/80 py-6">
+    <div class="container mx-auto px-4 text-center text-tape-light/60 text-sm">
+      <p>磁带未来主义交互小说 &copy; 2084</p>
+      <p class="mt-2">警告：长时间收听可能导致现实感知偏移</p>
+    </div>
+  </footer>
+  
+  <!-- 音频元素 -->
+  <audio id="tapeHiss" loop>
+    <source src="https://assets.mixkit.co/sfx/preview/mixkit-old-tape-player-hiss-1132.mp3" type="audio/mpeg">
+  </audio>
+   
+   <audio id="tapeClick">
+    <source src="https://assets.mixkit.co/sfx/preview/mixkit-tape-insert-click-1133.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', () => {
+      // 获取DOM元素
+      const choices = document.querySelectorAll('.choice-option');
+      const leftReel = document.getElementById('leftReel');
+      const rightReel = document.getElementById('rightReel');
+      const storyContent = document.getElementById('storyContent');
+      const choicesContainer = document.getElementById('choices');
+      const tapeHiss = document.getElementById('tapeHiss');
+      const tapeClick = document.getElementById('tapeClick');
+      const rewindBtn = document.getElementById('rewindBtn');
+      
+      // 播放磁带背景噪音
+      tapeHiss.volume = 0.2;
+      tapeHiss.play();
+      
+      // 选择高亮状态管理
+      let selectedIndex = 0;
+      
+      // 初始化第一个选项为选中状态
+      choices[selectedIndex].classList.add('bg-tape-accent/20', 'border-tape-accent');
+      
+      // 键盘导航
+      document.addEventListener('keydown', (e) => {
+        // 移除之前选中项的样式
+        choices[selectedIndex].classList.remove('bg-tape-accent/20', 'border-tape-accent');
+        
+        // 下方向键
+        if (e.key === 'ArrowDown') {
+          selectedIndex = (selectedIndex + 1) % choices.length;
+          tapeClick.currentTime = 0;
+          tapeClick.play();
+        }
+        // 上方向键
+        else if (e.key === 'ArrowUp') {
+          selectedIndex = (selectedIndex - 1 + choices.length) % choices.length;
+          tapeClick.currentTime = 0;
+          tapeClick.play();
+        }
+        // 回车键确认选择
+        else if (e.key === 'Enter') {
+          selectChoice(selectedIndex);
+        }
+        
+        // 添加新选中项的样式
+        choices[selectedIndex].classList.add('bg-tape-accent/20', 'border-tape-accent');
+      });
+      
+      // 鼠标点击选择
+      choices.forEach((choice, index) => {
+        choice.addEventListener('click', () => {
+          selectChoice(index);
+        });
+      });
+      
+      // 选择处理函数
+      function selectChoice(index) {
+        // 播放磁带点击音效
+        tapeClick.play();
+        
+        // 加速磁带转动动画
+        leftReel.classList.add('animate-tape-spin');
+        rightReel.classList.add('animate-tape-spin');
+        
+        // 更新进度条
+        const progressBar = document.querySelector('.tape-progress');
+        progressBar.style.setProperty('--progress', '50%');
+        
+        // 根据选择显示不同内容
+        let newContent = '';
+        let newChoices = '';
+        
+        switch(index) {
+          case 0: // 红色磁带
+            newContent = `
+              <p class="mb-4">你犹豫了一下，但最终还是拿起了红色磁带。标签上的警告字迹已经模糊，但仍能辨认出"高风险"字样。</p>
+              <p class="mb-4">将磁带插入录音机，按下播放键。一阵刺耳的噪音后，声音比之前更加扭曲：</p>
+              <p class="my-6 px-4 py-3 bg-tape-reel/30 border-l-4 border-tape-label italic">
+                "……你不该选择这个……[强烈干扰]……它们已经察觉到……[杂音]……出口在……通风管道……[信号中断]……"
+              </p>
+              <p>录音机突然冒出火花，自动弹出了磁带。房间里的灯光开始闪烁，远处传来金属摩擦的奇怪声音。</p>
+            `;
+            
+            newChoices = `
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[1]</span> 检查通风管道入口</p>
+              </div>
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[2]</span> 尝试修复录音机</p>
+              </div>
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[3]</span> 寻找其他出口</p>
+              </div>
+            `;
+            break;
+            
+          case 1: // 蓝色磁带
+            newContent = `
+              <p class="mb-4">蓝色磁带看起来最安全。你注意到它的外壳上有一个微小的公司标志，与广播站内的设备相匹配。</p>
+              <p class="mb-4">播放开始后，清晰的电子音响起，接着是机械的女声：</p>
+              <p class="my-6 px-4 py-3 bg-tape-reel/30 border-l-4 border-tape-label italic">
+                "系统备份启动，版本 3.7.2。检测到外部接入。请输入安全码或插入管理员身份磁带以获取完整访问权限。"
+              </p>
+              <p>录音机屏幕亮起，显示着等待输入的提示符。你记得在控制台抽屉里看到过一张标有"安全码"的卡片。</p>
+            `;
+            
+            newChoices = `
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[1]</span> 去控制台寻找安全码</p>
+              </div>
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[2]</span> 尝试插入其他磁带作为身份验证</p>
+              </div>
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[3]</span> 暴力破解系统</p>
+              </div>
+            `;
+            break;
+            
+          case 2: // 黄色磁带
+            newContent = `
+              <p class="mb-4">黄色磁带完全空白，没有任何标识。当你拿起它时，磁带异常冰冷，仿佛刚从冷冻室取出。</p>
+              <p class="mb-4">放入录音机后，什么都没有发生。持续的沉默让你开始怀疑这只是一盘空白磁带。就在你要取出它时，声音突然响起：</p>
+              <p class="my-6 px-4 py-3 bg-tape-reel/30 border-l-4 border-tape-label italic">
+                "……终于……有人找到了……[低语]……它们以为已经销毁了所有副本……时间不多了……在档案室……第7个货架……"
+              </p>
+              <p>声音消失了，但录音机的显示屏上开始闪烁一个坐标：X:47 Y:12 Z:89。这似乎是站内的某个位置。</p>
+            `;
+            
+            newChoices = `
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[1]</span> 前往档案室寻找第7个货架</p>
+              </div>
+              <p class="text-tape-light/50 text-sm italic my-2">* 磁带表面开始出现冰霜般的结晶</p>
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[2]</span> 调查坐标指向的位置</p>
+              </div>
+              <div class="choice-option p-3 border border-tape-accent/50 rounded hover:border-tape-accent hover:bg-tape-accent/10 cursor-pointer">
+                <p><span class="text-tape-accent">[3]</span> 丢弃黄色磁带，它看起来很危险</p>
+              </div>
+            `;
+            break;
+        }
+        
+        // 显示加载状态
+        storyContent.innerHTML = '<p class="text-center loading-tape">加载中</p>';
+        choicesContainer.innerHTML = '';
+        
+        // 延迟后显示新内容，模拟磁带加载
+        setTimeout(() => {
+          storyContent.innerHTML = newContent;
+          choicesContainer.innerHTML = newChoices;
+          
+          // 重置选择状态
+          const newChoiceElements = document.querySelectorAll('.choice-option');
+          selectedIndex = 0;
+          newChoiceElements[selectedIndex].classList.add('bg-tape-accent/20', 'border-tape-accent');
+          
+          // 为新选项添加事件监听
+          newChoiceElements.forEach((choice, idx) => {
+            choice.addEventListener('click', () => {
+              selectChoice(idx);
+            });
+          });
+          
+          // 恢复磁带转动速度
+          leftReel.classList.remove('animate-tape-spin');
+          rightReel.classList.remove('animate-tape-spin');
+        }, 1500);
+      }
+      
+      // 倒带按钮功能
+      rewindBtn.addEventListener('click', () => {
+        tapeClick.play();
+        // 显示倒带动画
+        leftReel.classList.add('animate-tape-spin');
+        rightReel.classList.add('animate-tape-spin');
+        const progressBar = document.querySelector('.tape-progress');
+        
+        // 进度条回退动画
+        let progress = 50;
+        const rewindInterval = setInterval(() => {
+          progress -= 5;
+          progressBar.style.setProperty('--progress', `${progress}%`);
+          
+          if (progress <= 25) {
+            clearInterval(rewindInterval);
+            leftReel.classList.remove('animate-tape-spin');
+            rightReel.classList.remove('animate-tape-spin');
+          }
+        }, 100);
+      });
+    });
+  </script>
+</body>
+</html>

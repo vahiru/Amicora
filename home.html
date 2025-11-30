@@ -268,8 +268,30 @@
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ff69b4" stroke-width="2"><path d="M12 4v16M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg>'), auto;
 }
 
-  </style>
+/* 优化滚动性能 */
+.scroll-reveal {
+  will-change: opacity, transform;
+  contain: layout paint size;
+}
 
+/* 为玻璃态添加更精致的阴影效果 */
+.glass-effect {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 提升文字可读性 */
+.text-white {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* 优化卡片悬停效果 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
   
 </head>
 
@@ -345,6 +367,10 @@
           <a href="chat.html" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="玩家聊天室">聊天室
           <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
           </a>
+          <a href="management.html" class="nav-link text-white hover:text-primary transition-colors tooltip relative" data-tooltip="查看管理团队成员">
+           管理团队
+          <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+</a>
         </div>
         <!-- 主题切换按钮 -->
         <div class="flex items-center space-x-3">
@@ -382,6 +408,7 @@
           <a href="login.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">注册/登录</a>
           <a href="profile.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">个人主页</a>
           <a href="chat.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">聊天室</a>
+          <a href="management.html" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">管理团队</a>
          </div>
         </div>
       </div>
@@ -399,9 +426,12 @@
     <!-- 关于大版块 -->
     <section id="about" class="mb-20 scroll-mt-24">
       <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+       <div class="flex justify-between items-center mb-8"></div>
         <h2 class="text-3xl md:text-4xl font-bold mb-8 text-white text-shadow flex items-center">
           <i class="fa fa-info-circle mr-3 text-primary"></i>关于
         </h2>
+
+
        
 <!-- 在合适位置添加搜索框 -->
 <div class="search-container relative mx-4 hidden md:block">
@@ -431,6 +461,9 @@
   </div>
 </div>
 
+
+
+         
          <!-- 七个小版块 - 响应式网格布局 -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- 服务器介绍 -->
@@ -593,6 +626,7 @@
           </div>
         </div>
       </div>
+    </div>
     </section>
 
     <!-- 音乐播放器控件 -->
@@ -634,7 +668,43 @@
       <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
         <i class="fa fa-music text-white/70 mr-2"></i>
         <span class="text-white/80 truncate">星相运轨</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">鸟之诗</span>
       </div>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">アイロニ - majiko（反语）</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">Call of silence（钢琴版） - Yi Chou</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">In The End（钢琴版） - 刘匠</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">纪念（2022中高考加油） - 西罕</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">Unwelcome school - ミツキヨ</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">和宇宙的温柔关联 - Z小姐</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">雨晴るる - ヨルシカ</span>
+      <div class="music-item flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+        <i class="fa fa-music text-white/70 mr-2"></i>
+        <span class="text-white/80 truncate">瞬间的永恒 - 赵海洋</span>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div> 
+      </div>
+
       
       </div>
     </div>
@@ -966,6 +1036,201 @@
   </div>
 </section>
 
+<!-- 在<body>标签内添加键盘容器 -->
+<div id="keyboardContainer" class="fixed left-0 top-0 h-full z-40 transform -translate-x-full transition-transform duration-300 ease-in-out">
+  <div class="h-full bg-glass-dark glass-effect border-r border-white/10 p-4 flex flex-col">
+    <!-- 键盘标题栏 -->
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-white font-medium">虚拟键盘</h3>
+      <button id="closeKeyboard" class="text-white/70 hover:text-white p-1">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    
+    <!-- 键盘主体 -->
+    <div id="virtualKeyboard" class="flex-1 overflow-y-auto">
+      <!-- 键盘按键将通过JS动态生成 -->
+    </div>
+    
+    <!-- 提示信息 -->
+    <div class="text-xs text-white/50 mt-4">
+      <p>• 支持物理键盘同步输入</p>
+      <p>• 点击虚拟按键也可输入</p>
+    </div>
+  </div>
+</div>
+
+<!-- 键盘调用按钮 -->
+<button id="toggleKeyboard" class="fixed left-4 top-1/2 z-30 bg-glass-dark glass-effect text-white p-3 rounded-full border border-white/10 transform -translate-y-1/2 hover:bg-glass-hover transition-colors">
+  <i class="fa fa-keyboard-o"></i>
+</button>
+
+<!-- 在</body>结束前添加键盘脚本 -->
+<script>
+  // 键盘布局定义 (QWERTY布局)
+  const keyboardLayout = [
+    ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],
+    ['Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+    ['Caps', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'", 'Enter'],
+    ['Shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'Shift'],
+    ['Ctrl', 'Win', 'Alt', ' ', 'Alt', 'Fn', 'Ctrl', '↑'],
+    ['←', '↓', '→']
+  ];
+
+  // 特殊按键宽度映射
+  const keyWidths = {
+    'Backspace': '120px',
+    'Tab': '80px',
+    'Caps': '90px',
+    'Enter': '100px',
+    'Shift': '110px',
+    ' ': '300px',
+    'Ctrl': '70px',
+    'Win': '50px',
+    'Alt': '60px',
+    'Fn': '50px',
+    '←': '60px',
+    '↓': '60px',
+    '→': '60px',
+    '↑': '60px'
+  };
+
+  // 初始化虚拟键盘
+  function initVirtualKeyboard() {
+    const keyboardElement = document.getElementById('virtualKeyboard');
+    
+    // 生成键盘行
+    keyboardLayout.forEach(row => {
+      const rowElement = document.createElement('div');
+      rowElement.className = 'flex justify-center gap-2 mb-2';
+      
+      // 生成每行按键
+      row.forEach(key => {
+        const keyElement = document.createElement('button');
+        keyElement.className = 'bg-gray-800/70 hover:bg-gray-700 text-white rounded-md py-3 transition-all duration-150 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary';
+        keyElement.textContent = key;
+        keyElement.dataset.key = key.toLowerCase();
+        
+        // 设置特殊按键宽度
+        if (keyWidths[key]) {
+          keyElement.style.minWidth = keyWidths[key];
+        } else {
+          keyElement.style.minWidth = '60px';
+        }
+        
+        // 添加3D效果
+        keyElement.style.boxShadow = '0 4px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+        keyElement.style.position = 'relative';
+        keyElement.style.transformStyle = 'preserve-3d';
+        
+        // 按键点击事件
+        keyElement.addEventListener('click', () => handleKeyPress(key));
+        
+        rowElement.appendChild(keyElement);
+      });
+      
+      keyboardElement.appendChild(rowElement);
+    });
+  }
+
+  // 处理按键按下
+  function handleKeyPress(key) {
+    // 模拟按键效果
+    const keyElement = document.querySelector(`[data-key="${key.toLowerCase()}"]`);
+    if (keyElement) {
+      keyElement.classList.add('scale-95', 'bg-gray-700');
+      setTimeout(() => {
+        keyElement.classList.remove('scale-95', 'bg-gray-700');
+      }, 150);
+    }
+    
+    // 这里可以根据需要处理不同按键的功能
+    console.log(`Key pressed: ${key}`);
+    
+    // 示例：如果有焦点元素，向其输入内容
+    const activeElement = document.activeElement;
+    if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
+      switch(key) {
+        case 'Backspace':
+          activeElement.value = activeElement.value.slice(0, -1);
+          break;
+        case 'Enter':
+          activeElement.value += '\n';
+          break;
+        case 'Tab':
+          activeElement.value += '  ';
+          break;
+        case ' ':
+          activeElement.value += ' ';
+          break;
+        default:
+          // 处理普通字符
+          if (key.length === 1) {
+            // 处理大小写 (简化版)
+            const isCapsLocked = document.querySelector('[data-key="caps"]').classList.contains('bg-primary');
+            const isShifted = key === key.toUpperCase() && key !== key.toLowerCase();
+            
+            activeElement.value += (isCapsLocked || isShifted) ? key.toUpperCase() : key.toLowerCase();
+          }
+      }
+      // 触发输入事件
+      activeElement.dispatchEvent(new Event('input'));
+    }
+  }
+
+  // 同步物理键盘
+  function syncPhysicalKeyboard() {
+    document.addEventListener('keydown', (e) => {
+      // 找到对应的虚拟按键
+      let keyName = e.key;
+      
+      // 特殊按键映射
+      if (e.key === ' ') keyName = ' ';
+      if (e.key === 'Backspace') keyName = 'Backspace';
+      if (e.key === 'Tab') keyName = 'Tab';
+      if (e.key === 'Enter') keyName = 'Enter';
+      if (e.key === 'Shift') keyName = 'Shift';
+      if (e.key === 'Control') keyName = 'Ctrl';
+      if (e.key === 'Meta') keyName = 'Win';
+      if (e.key === 'Alt') keyName = 'Alt';
+      if (e.key === 'ArrowUp') keyName = '↑';
+      if (e.key === 'ArrowDown') keyName = '↓';
+      if (e.key === 'ArrowLeft') keyName = '←';
+      if (e.key === 'ArrowRight') keyName = '→';
+      
+      // 处理CapsLock状态
+      if (e.key === 'CapsLock') {
+        const capsElement = document.querySelector('[data-key="caps"]');
+        if (capsElement) capsElement.classList.toggle('bg-primary');
+      }
+      
+      // 触发虚拟按键效果
+      handleKeyPress(keyName);
+    });
+  }
+
+  // 切换键盘显示/隐藏
+  function setupKeyboardToggle() {
+    const keyboardContainer = document.getElementById('keyboardContainer');
+    const toggleBtn = document.getElementById('toggleKeyboard');
+    const closeBtn = document.getElementById('closeKeyboard');
+    
+    function toggleKeyboard() {
+      keyboardContainer.classList.toggle('-translate-x-full');
+    }
+    
+    toggleBtn.addEventListener('click', toggleKeyboard);
+    closeBtn.addEventListener('click', toggleKeyboard);
+  }
+
+  // 页面加载完成后初始化
+  document.addEventListener('DOMContentLoaded', () => {
+    initVirtualKeyboard();
+    syncPhysicalKeyboard();
+    setupKeyboardToggle();
+  });
+</script>
+
           <!-- 本网站扩展页 -->
     <section id="recommendations" class="mb-20 scroll-mt-24 section-wrapper">
       <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
@@ -1045,6 +1310,23 @@
             </div>
           </div>
 
+<div class="section-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <div class="glass-effect bg-white/5 dark:bg-gray-800/30 rounded-2xl p-6 border border-white/10 dark:border-gray-700 shadow-lg card-hover">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white">一个破系统</h3>
+              <button class="collapse-btn text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="fa fa-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse-content">
+              <p class="text-gray-200 mb-3">一个简单的操作系统，用于展示基本的系统操作和功能</p>
+              <a href="扩展页/Amicora_World_System.html" target="_blank" class="text-primary hover:text-secondary transition-colors inline-flex items-center">
+                访问扩展页 <i class="fa fa-external-link ml-1"></i>
+              </a>
+            </div>
+          </div>
+
 
 
     
@@ -1068,7 +1350,6 @@
 <button id="openConsoleBtn" class="fixed bottom-4 right-4 z-40 bg-gray-800 text-green-400 p-2 rounded-full shadow-lg hover:bg-gray-700 transition-colors">
   <i class="fa fa-terminal"></i>
 </button>
-
   </main>
     <!-- 互动猫咪元素 -->
   <div id="cat-container" class="fixed bottom-6 right-6 z-40 cursor-pointer">
@@ -1087,6 +1368,70 @@
     </div>
   </div>
 
+  <!-- 在现有页脚代码后添加 -->
+<footer class="mt-auto py-6 border-t border-white/10">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col md:justify-between md:flex-row items-center text-gray-400 text-sm">
+      <div>
+        <p>本站成立时间: 2025.10.19</p>
+        <p>本站内容最后更新: <span id="lastUpdate">2025.11.22</span></p>
+      </div>
+      <!-- 已有的页脚信息 -->
+    </div>
+  </div>
+</footer>
+
+<script>
+  // 自动更新最后修改时间（可从服务器获取）
+  document.addEventListener('DOMContentLoaded', () => {
+    // 实际项目中可通过后端接口获取
+    const lastModified = new Date(document.lastModified);
+    const formattedDate = `${lastModified.getFullYear()}.${(lastModified.getMonth()+1).toString().padStart(2,'0')}.${lastModified.getDate().toString().padStart(2,'0')}`;
+    document.getElementById('lastUpdate').textContent = formattedDate;
+  });
+</script>
+
+<!-- 在页脚添加小夜灯装饰 -->
+<div class="night-light-container fixed bottom-6 left-6 z-30">
+  <div class="night-light w-12 h-12 rounded-full bg-yellow-200 shadow-[0_0_30px_15px_rgba(255,221,153,0.5)] cursor-pointer transition-all duration-500 hover:scale-110" id="nightLight">
+    <div class="w-3 h-3 bg-yellow-400 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+  </div>
+</div>
+
+<style>
+  .night-light-container {
+    perspective: 100px;
+  }
+  
+  .night-light {
+    position: relative;
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  .night-light.off {
+    background: #333;
+    box-shadow: none;
+  }
+  
+  .night-light.off .w-3 {
+    background: #555;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+  }
+</style>
+
+<script>
+  // 小夜灯开关功能
+  document.getElementById('nightLight').addEventListener('click', function() {
+    this.classList.toggle('off');
+    
+    // 可以添加更多效果，比如改变页面亮度
+    document.body.classList.toggle('night-mode');
+  });
+</script>
 
   <!-- 页脚 -->
   <footer class="glass-effect bg-glass dark:bg-glass-dark border-t border-white/10 dark:border-gray-800">
@@ -1102,8 +1447,16 @@
           <p class="text-gray-300 mb-4">一个友好、和谐的我的世界服务器社区，致力于为玩家提供优质的游戏体验。</p>
           <a href="https://github.com/xinggreen" class="text-gray-300 hover:text-primary transition-colors">
               <i class="fa fa-github text-xl"></i>
-            </a>
+          </a>
+
+          <a href="483165474@qq.com" class="hover:text-primary transition-colors">
+            <i class="fa fa-envelope mr-1"></i>
+          </a>
+          <a href="https://gitee.com/xinggreen" class="hover:text-primary transition-colors">
+            <i class="fa fa-gitee mr-2"></i>
+          </a>
         </div>
+      </div>
         
         <div>
           <h4 class="text-white font-bold mb-4">快速链接</h4>
@@ -2314,6 +2667,16 @@ function initMusicControl() {
   const musicList = [
     { title: '暮春', src: 'mp3/暮春.mp3' },
     { title: '星相运轨', src: 'mp3/星相运轨.mp3' },
+    { title: '鸟之诗', src: 'http://music.163.com/song/media/outer/url?id=28151022.mp3' },
+    { title: 'アイロニ - majiko（反语）', src: 'http://music.163.com/song/media/outer/url?id=31421442.mp3' },
+    { title: 'Call of silence（钢琴版） - Yi Chou', src: 'http://music.163.com/song/media/outer/url?id=1840310903.mp3' },
+    { title: 'In The End（钢琴版） - 刘匠', src: 'http://music.163.com/song/media/outer/url?id=1979801190.mp3' },
+    { title: '纪念（2022中高考加油） - 西罕', src: 'http://music.163.com/song/media/outer/url?id=1951776453.mp3' },
+    { title: 'Unwelcome school - ミツキヨ', src: 'http://music.163.com/song/media/outer/url?id=2002662300.mp3' },
+    { title: '和宇宙的温柔关联 - Z小姐', src: 'http://music.163.com/song/media/outer/url?id=2612795986.mp3' },
+    { title: '雨晴るる - ヨルシカ', src: 'http://music.163.com/song/media/outer/url?id=1387098936.mp3' },
+    { title: '瞬间的永恒 - 赵海洋', src: 'http://music.163.com/song/media/outer/url?id=31134622.mp3' },
+
   ];
   
   let currentMusicIndex = 0;
@@ -2599,6 +2962,158 @@ document.addEventListener('keydown', (e) => {
                 resetCountdown();
             }
         }, 1000);
+
+// 在home.html中添加彩蛋脚本
+document.addEventListener('DOMContentLoaded', () => {
+  // 猫耳光标彩蛋（按C键触发）
+  let catCursorActive = false;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'c' && e.ctrlKey) {
+      catCursorActive = !catCursorActive;
+      document.body.classList.toggle('cat-cursor', catCursorActive);
+      
+      // 显示提示
+      showEasterEggMessage("猫耳光标已" + (catCursorActive ? "激活" : "关闭"));
+    }
+  });
+  
+  // 双击小夜灯触发特殊效果
+  let nightLightClickCount = 0;
+  document.getElementById('nightLight').addEventListener('click', () => {
+    nightLightClickCount++;
+    if (nightLightClickCount >= 5) {
+      // 触发特殊动画
+      document.body.classList.add('party-mode');
+      setTimeout(() => {
+        document.body.classList.remove('party-mode');
+        nightLightClickCount = 0;
+      }, 5000);
+      showEasterEggMessage("喵！");
+    }
+  });
+  
+  // 彩蛋提示消息
+  function showEasterEggMessage(text) {
+    const msg = document.createElement('div');
+    msg.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-lg z-50 animate-fade-in';
+    msg.textContent = text;
+    document.body.appendChild(msg);
+    
+    setTimeout(() => {
+      msg.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+      setTimeout(() => msg.remove(), 500);
+    }, 2000);
+  }
+});
+
+// 优化图片加载非关键JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+  // 动态加载Chart.js（仅在需要时）
+  if(document.getElementById('serverStatusChart')) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }
+});
+</script>
+
+<!-- 优化导航栏滚动效果 -->
+<script>
+// 导航栏滚动效果优化
+window.addEventListener('scroll', function() {
+  const header = document.querySelector('header');
+  if (window.scrollY > 50) {
+    header.classList.add('bg-glass/95', 'shadow-md');
+    header.classList.remove('bg-transparent');
+  } else {
+    header.classList.remove('bg-glass/95', 'shadow-md');
+    header.classList.add('bg-transparent');
+  }
+}, { passive: true }); // 使用passive提高滚动性能
+
+// 图片点击放大功能
+document.querySelectorAll('.collapse-content img').forEach(img => {
+  img.addEventListener('click', function() {
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4';
+    overlay.innerHTML = `<img src="${this.src}" alt="${this.alt}" class="max-w-full max-h-[90vh] object-contain transition-transform duration-300">`;
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    
+    overlay.addEventListener('click', function() {
+      overlay.remove();
+      document.body.style.overflow = '';
+    }, { once: true });
+  });
+});
+
+// 优化搜索功能
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchInput.addEventListener('input', debounce(function(e) {
+  const query = e.target.value.trim();
+  if (query.length < 2) {
+    searchResults.classList.add('hidden');
+    return;
+  }
+  
+  // 搜索逻辑...
+}, 300)); // 防抖处理
+
+// 防抖函数
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+// 优化服务器状态轮询
+let statusPolling;
+
+function startStatusPolling() {
+  // 停止之前的轮询
+  if (statusPolling) clearInterval(statusPolling);
+  
+  // 初始获取一次状态
+  fetchServerStatus();
+  
+  // 每30秒更新一次，减少请求频率
+  statusPolling = setInterval(fetchServerStatus, 30000);
+}
+
+function fetchServerStatus() {
+  // 使用fetch API并设置超时
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  
+  fetch('/api/server-status', { signal: controller.signal })
+    .then(response => response.json())
+    .then(data => {
+      updateServerStatus(data);
+    })
+    .catch(error => {
+      console.log('Failed to fetch server status:', error);
+    })
+    .finally(() => {
+      clearTimeout(timeoutId);
+    });
+}
+
+// 页面加载时启动轮询
+startStatusPolling();
+
+// 页面隐藏时停止轮询，显示时重新启动
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    if (statusPolling) clearInterval(statusPolling);
+  } else {
+    startStatusPolling();
+  }
+});
 </script>
 
 

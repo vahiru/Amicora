@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amicora_World_System</title>
+  <!-- 外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3ad59fcd',
+            secondary: '#EC4899',
+            accent: '#10B981',
+            glass: 'rgba(255, 255, 255, 0.15)',
+            'glass-dark': 'rgba(17, 24, 39, 0.85)',
+            'windows-blue': '#0078D7',
+            'start-menu': 'rgba(30, 30, 30, 0.95)',
+            'taskbar': 'rgba(30, 30, 30, 0.8)',
+          },
+          fontFamily: {
+            sans: ['Segoe UI', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.3s ease-out forwards',
+            'slide-up': 'slideUp 0.3s ease-out forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(10px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            }
+          }
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .window-shadow {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+      .app-hover {
+        transition: all 0.2s ease;
+      }
+      .app-hover:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+      }
+    }
+  </style>
+  
+  <style>
+    body {
+      overflow: hidden;
+      height: 100vh;
+      background-image: url('images/wallpaper.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+    /* 窗口样式 */
+    .window {
+      position: absolute;
+      border-radius: 8px;
+      background-color: #1e1e1e;
+      color: white;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+    
+    .window.maximized {
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 0;
+    }
+    
+    .window-header {
+      height: 32px;
+      background-color: #2d2d2d;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      cursor: move;
+    }
+    
+    .window-controls {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .window-control {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .window-content {
+      height: calc(100% - 32px);
+      overflow: auto;
+      padding: 16px;
+    }
+    
+    /* 任务栏样式 */
+    #taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background-color: theme('colors.taskbar');
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      z-index: 100;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    #startButton {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      background-color: theme('colors.windows-blue');
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .taskbar-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 4px;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .taskbar-icon:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .taskbar-icon.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .system-tray {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+    }
+    
+    /* 开始菜单 */
+    #startMenu {
+      position: fixed;
+      bottom: 52px;
+      left: 4px;
+      width: 512px;
+      height: 600px;
+      background-color: theme('colors.start-menu');
+      border-radius: 8px;
+      z-index: 101;
+      display: none;
+      animation: slideUp 0.3s ease-out forwards;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    #startMenu.open {
+      display: block;
+    }
+    
+    .start-pinned {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+    
+    .app-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    
+    .app-icon:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .app-icon i {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    
+    .app-name {
+      font-size: 12px;
+      text-align: center;
+      max-width: 80px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* 右键菜单 */
+    #contextMenu {
+      position: absolute;
+      width: 200px;
+      background-color: #2d2d2d;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: none;
+    }
+    
+    #contextMenu.open {
+      display: block;
+    }
+    
+    .context-item {
+      padding: 8px 16px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .context-item:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-900 text-white">
+  <!-- 桌面图标 -->
+  <div class="p-4">
+    <div class="app-icon app-hover mb-6" style="width: 80px;" onclick="openWindow('explorer')">
+      <i class="fa fa-folder text-yellow-400"></i>
+      <span class="app-name">文件资源管理器</span>
+    </div>
+    
+    <div class="app-icon app-hover mb-6" style="width: 80px;" onclick="openWindow('browser')">
+      <i class="fa fa-globe text-blue-400"></i>
+      <span class="app-name">浏览器</span>
+    </div>
+    
+    <div class="app-icon app-hover mb-6" style="width: 80px;" onclick="openWindow('terminal')">
+      <i class="fa fa-terminal text-green-400"></i>
+      <span class="app-name">终端</span>
+    </div>
+    
+    <div class="app-icon app-hover mb-6" style="width: 80px;" onclick="openWindow('settings')">
+      <i class="fa fa-cog text-gray-300"></i>
+      <span class="app-name">设置</span>
+    </div>
+    
+    <div class="app-icon app-hover mb-6" style="width: 80px;" onclick="openWindow('notes')">
+      <i class="fa fa-sticky-note text-yellow-300"></i>
+      <span class="app-name">记事本</span>
+    </div>
+  </div>
+
+  <!-- 任务栏 -->
+  <div id="taskbar">
+    <button id="startButton" onclick="toggleStartMenu()">
+      <i class="fa fa-windows text-xl"></i>
+    </button>
+    
+    <div class="taskbar-icon" onclick="openWindow('explorer')">
+      <i class="fa fa-folder"></i>
+    </div>
+    
+    <div class="taskbar-icon" onclick="openWindow('browser')">
+      <i class="fa fa-globe"></i>
+    </div>
+    
+    <div class="taskbar-icon" onclick="openWindow('terminal')">
+      <i class="fa fa-terminal"></i>
+    </div>
+    
+    <div class="system-tray">
+      <div class="tooltip" data-tooltip="音量">
+        <i class="fa fa-volume-up"></i>
+      </div>
+      <div class="tooltip" data-tooltip="网络连接">
+        <i class="fa fa-wifi"></i>
+      </div>
+      <div class="tooltip" data-tooltip="电池">
+        <i class="fa fa-battery-full"></i>
+      </div>
+      <div id="clock" class="tooltip" data-tooltip="日期和时间">
+        12:00
+      </div>
+    </div>
+  </div>
+  
+  <!-- 开始菜单 -->
+  <div id="startMenu">
+    <div class="start-pinned">
+      <h3 class="text-sm font-medium text-gray-400 mb-4">固定应用</h3>
+      <div class="app-grid">
+        <div class="app-icon" onclick="openWindow('browser')">
+          <i class="fa fa-globe text-blue-400"></i>
+          <span class="app-name">浏览器</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('explorer')">
+          <i class="fa fa-folder text-yellow-400"></i>
+          <span class="app-name">文件资源管理器</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('terminal')">
+          <i class="fa fa-terminal text-green-400"></i>
+          <span class="app-name">终端</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('notes')">
+          <i class="fa fa-sticky-note text-yellow-300"></i>
+          <span class="app-name">记事本</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('settings')">
+          <i class="fa fa-cog text-gray-300"></i>
+          <span class="app-name">设置</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('calculator')">
+          <i class="fa fa-calculator text-orange-400"></i>
+          <span class="app-name">计算器</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('music')">
+          <i class="fa fa-music text-purple-400"></i>
+          <span class="app-name">音乐</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('photos')">
+          <i class="fa fa-picture-o text-red-400"></i>
+          <span class="app-name">照片</span>
+        </div>
+        <div class="app-icon" onclick="openWindow('weather')">
+          <i class="fa fa-cloud text-blue-300"></i>
+          <span class="app-name">天气</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-4">
+      <h3 class="text-sm font-medium text-gray-400 mb-4">所有应用</h3>
+      <!-- 更多应用可在这里添加 -->
+    </div>
+    
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+      <div class="flex items-center">
+        <img src="images/user-avatar.jpg" alt="用户头像" class="w-10 h-10 rounded-full mr-3">
+        <div>
+          <div class="font-medium">Amicora User</div>
+          <div class="text-xs text-gray-400">标准用户</div>
+        </div>
+        <button class="ml-auto p-2 hover:bg-gray-700 rounded-full">
+          <i class="fa fa-sign-out"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 右键菜单 -->
+  <div id="contextMenu">
+    <div class="context-item" onclick="createNewFolder()">
+      <i class="fa fa-folder mr-2"></i>新建文件夹
+    </div>
+    <div class="context-item" onclick="createNewTextFile()">
+      <i class="fa fa-file-text-o mr-2"></i>新建文本文档
+    </div>
+    <div class="context-item">
+      <i class="fa fa-picture-o mr-2"></i>更换壁纸
+    </div>
+    <div class="context-item">
+      <i class="fa fa-refresh mr-2"></i>刷新
+    </div>
+  </div>
+
+  <!-- 后端模拟与核心功能脚本 -->
+  <script>
+    // 全局状态管理
+    const systemState = {
+      windows: [],
+      nextWindowId: 1,
+      wallpaper: 'images/wallpaper.jpg',
+      user: {
+        name: 'Amicora User',
+        avatar: 'images/user-avatar.jpg',
+        role: '标准用户'
+      },
+      files: [
+        { id: 1, name: '文档', type: 'folder', path: '/', modified: '2023-11-28' },
+        { id: 2, name: '图片', type: 'folder', path: '/', modified: '2023-11-27' },
+        { id: 3, name: '音乐', type: 'folder', path: '/', modified: '2023-11-26' },
+        { id: 4, name: '服务器说明.txt', type: 'file', path: '/', modified: '2023-11-25' },
+        { id: 5, name: '欢迎.txt', type: 'file', path: '/', modified: '2023-11-24' }
+      ]
+    };
+
+    // 窗口模板定义
+    const windowTemplates = {
+      explorer: {
+        title: '文件资源管理器',
+        width: 800,
+        height: 600,
+        content: `
+          <div class="flex flex-col h-full">
+            <div class="mb-4">
+              <div class="flex gap-2 mb-3">
+                <button class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">
+                  <i class="fa fa-arrow-left mr-1"></i> 后退
+                </button>
+                <button class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">
+                  <i class="fa fa-arrow-right mr-1"></i> 前进
+                </button>
+                <button class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">
+                  <i class="fa fa-refresh mr-1"></i> 刷新
+                </button>
+              </div>
+              <div class="bg-gray-800 p-2 rounded text-sm">此电脑 > 桌面</div>
+            </div>
+            
+            <div class="flex-1 overflow-auto">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${systemState.files.map(file => `
+                  <div class="flex items-center p-3 bg-gray-800 rounded hover:bg-gray-700 cursor-pointer">
+                    <i class="fa ${file.type === 'folder' ? 'fa-folder text-yellow-400' : 'fa-file-text-o text-gray-300'} mr-3 text-xl"></i>
+                    <div>
+                      <div>${file.name}</div>
+                      <div class="text-xs text-gray-400">${file.modified}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `
+      },
+      browser: {
+        title: '浏览器',
+        width: 1024,
+        height: 768,
+        content: `
+          <div class="flex flex-col h-full">
+            <div class="bg-gray-800 p-2 mb-4">
+              <div class="flex items-center gap-2">
+                <button class="p-1 hover:bg-gray-700 rounded">
+                  <i class="fa fa-arrow-left"></i>
+                </button>
+                <button class="p-1 hover:bg-gray-700 rounded">
+                  <i class="fa fa-arrow-right"></i>
+                </button>
+                <button class="p-1 hover:bg-gray-700 rounded">
+                  <i class="fa fa-refresh"></i>
+                </button>
+                <div class="flex-1 bg-gray-700 rounded px-3 py-1 text-sm">
+                  https://amicora-world.com
+                </div>
+                <button class="p-1 hover:bg-gray-700 rounded">
+                  <i class="fa fa-search"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="flex-1 bg-white rounded overflow-hidden">
+              <iframe src="home.html" class="w-full h-full border-0"></iframe>
+            </div>
+          </div>
+        `
+      },
+      terminal: {
+        title: '终端',
+        width: 800,
+        height: 500,
+        content: `
+          <div class="font-mono text-green-400 text-sm h-full flex flex-col">
+            <div class="mb-2">Amicora_World_System [版本 1.0.0]</div>
+            <div class="mb-2">(c) 2023 Amicora_World_System 开发者: AI + XingGreen & Eternal_Memory</div>
+            <div class="mb-2">C:\\Users\\Amicora></div>
+            <div class="flex-1 overflow-auto">
+              <div class="mb-1">> 欢迎使用 Amicora_World_System 终端</div>
+              <div class="mb-1">> 输入 'help' 查看可用命令</div>
+            </div>
+            <div class="flex">
+              <span class="mr-1">>></span>
+              <input type="text" class="bg-transparent border-none outline-none flex-1" placeholder="输入命令...">
+            </div>
+          </div>
+        `
+      },
+      settings: {
+        title: '设置',
+        width: 800,
+        height: 600,
+        content: `
+          <div class="h-full">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div class="space-y-1">
+                <div class="p-2 hover:bg-gray-800 rounded cursor-pointer font-medium">
+                  <i class="fa fa-home mr-2"></i> 系统
+                </div>
+                <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">
+                  <i class="fa fa-user mr-2"></i> 账户
+                </div>
+                <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">
+                  <i class="fa fa-desktop mr-2"></i> 个性化
+                </div>
+                <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">
+                  <i class="fa fa-wifi mr-2"></i> 网络
+                </div>
+                <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">
+                  <i class="fa fa-bell mr-2"></i> 通知
+                </div>
+              </div>
+              
+              <div class="md:col-span-3">
+                <h2 class="text-xl font-bold mb-4">系统信息</h2>
+                <div class="space-y-4">
+                  <div class="bg-gray-800 p-4 rounded">
+                    <h3 class="font-medium mb-2">Amicora_World_System</h3>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                      <div>版本: 1.0.0</div>
+                      <div>开发者: AI + XingGreen & Eternal_Memory</div>
+                      <div>安装日期: 2023-11-29</div>
+                      <div>系统类型: 64位操作系统</div>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-gray-800 p-4 rounded">
+                    <h3 class="font-medium mb-2">设备规格</h3>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                      <div>处理器: 虚拟处理器</div>
+                      <div>内存: 8.00 GB</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      notes: {
+        title: '记事本 - 欢迎.txt',
+        width: 600,
+        height: 400,
+        content: `
+          <div class="h-full flex flex-col">
+            <textarea class="flex-1 bg-transparent border-none outline-none font-mono text-sm resize-none" style="line-height: 1.5;">欢迎使用 Amicora_World_System
+
+这是一个基于网页的模拟操作系统，灵感来自 Windows 11 设计风格。
+
+开发者: AI + XingGreen & Eternal_Memory
+
+功能:
+- 多窗口管理
+- 文件系统浏览
+- 网页浏览
+- 终端命令行
+- 系统设置
+
+祝您使用愉快！
+</textarea>
+          </div>
+        `
+      },
+      calculator: {
+        title: '计算器',
+        width: 320,
+        height: 420,
+        content: `
+          <div class="h-full flex flex-col">
+            <div class="bg-gray-800 p-4 mb-2 rounded text-right text-xl h-16 flex items-end justify-end">0</div>
+            <div class="grid grid-cols-4 gap-2 flex-1">
+              <button class="bg-gray-700 hover:bg-gray-600 rounded p-2">C</button>
+              <button class="bg-gray-700 hover:bg-gray-600 rounded p-2">±</button>
+              <button class="bg-gray-700 hover:bg-gray-600 rounded p-2">%</button>
+              <button class="bg-orange-500 hover:bg-orange-600 rounded p-2">÷</button>
+              
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">7</button>
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">8</button>
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">9</button>
+              <button class="bg-orange-500 hover:bg-orange-600 rounded p-2">×</button>
+              
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">4</button>
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">5</button>
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">6</button>
+              <button class="bg-orange-500 hover:bg-orange-600 rounded p-2">-</button>
+              
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">1</button>
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">2</button>
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">3</button>
+              <button class="bg-orange-500 hover:bg-orange-600 rounded p-2">+</button>
+              
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2 col-span-2">0</button>
+              <button class="bg-gray-800 hover:bg-gray-700 rounded p-2">.</button>
+              <button class="bg-orange-500 hover:bg-orange-600 rounded p-2">=</button>
+            </div>
+          </div>
+        `
+      },
+      music: {
+        title: '音乐',
+        width: 800,
+        height: 600,
+        content: `
+          <div class="h-full flex flex-col">
+            <div class="mb-4">
+              <h3 class="text-lg font-medium mb-2">播放列表</h3>
+              <div class="space-y-1">
+                <div class="p-2 bg-gray-800 rounded hover:bg-gray-700 flex items-center">
+                  <i class="fa fa-music mr-3 text-primary"></i>
+                  <div class="flex-1">
+                    <div>鸟之诗</div>
+                    <div class="text-xs text-gray-400">钢琴版</div>
+                  </div>
+                  <div class="text-sm text-gray-400">3:45</div>
+                </div>
+                <div class="p-2 bg-gray-800 rounded hover:bg-gray-700 flex items-center">
+                  <i class="fa fa-music mr-3 text-gray-400"></i>
+                  <div class="flex-1">
+                    <div>反语</div>
+                    <div class="text-xs text-gray-400">原版</div>
+                  </div>
+                  <div class="text-sm text-gray-400">4:12</div>
+                </div>
+                <div class="p-2 bg-gray-800 rounded hover:bg-gray-700 flex items-center">
+                  <i class="fa fa-music mr-3 text-gray-400"></i>
+                  <div class="flex-1">
+                    <div>在一起的时光</div>
+                    <div class="text-xs text-gray-400">纯音乐</div>
+                  </div>
+                  <div class="text-sm text-gray-400">2:58</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-800 p-4 rounded mt-auto">
+              <div class="flex items-center gap-4">
+                <img src="images/music-cover.jpg" alt="专辑封面" class="w-16 h-16 rounded">
+                <div class="flex-1">
+                  <div class="font-medium">鸟之诗</div>
+                  <div class="text-sm text-gray-400">钢琴版</div>
+                  <div class="w-full bg-gray-700 h-1 rounded mt-2">
+                    <div class="bg-primary h-1 rounded" style="width: 35%"></div>
+                  </div>
+                  <div class="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>1:24</span>
+                    <span>3:45</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4">
+                  <button class="hover:text-primary"><i class="fa fa-step-backward"></i></button>
+                  <button class="hover:text-primary"><i class="fa fa-pause"></i></button>
+                  <button class="hover:text-primary"><i class="fa fa-step-forward"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      }
+    };
+
+    // 初始化时钟
+    function updateClock() {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      document.getElementById('clock').textContent = `${hours}:${minutes}`;
+    }
+    
+    setInterval(updateClock, 60000);
+    updateClock();
+
+    // 开始菜单切换
+    function toggleStartMenu() {
+      const startMenu = document.getElementById('startMenu');
+      startMenu.classList.toggle('open');
+    }
+
+    // 打开窗口
+    function openWindow(type) {
+      // 检查窗口是否已打开
+      const existingWindow = systemState.windows.find(w => w.type === type);
+      if (existingWindow) {
+        document.getElementById(`window-${existingWindow.id}`).style.zIndex = getMaxZIndex() + 1;
+        return;
+      }
+      
+      const template = windowTemplates[type];
+      if (!template) return;
+      
+      const windowId = systemState.nextWindowId++;
+      const windowElement = document.createElement('div');
+      windowElement.id = `window-${windowId}`;
+      windowElement.className = 'window window-shadow animate-fade-in';
+      windowElement.style.width = `${template.width}px`;
+      windowElement.style.height = `${template.height}px`;
+      windowElement.style.left = `${(window.innerWidth - template.width) / 2}px`;
+      windowElement.style.top = `${(window.innerHeight - template.height) / 2}px`;
+      
+      windowElement.innerHTML = `
+        <div class="window-header" onmousedown="startDrag(event, ${windowId})">
+          <div class="window-title">${template.title}</div>
+          <div class="window-controls">
+            <button class="window-control bg-gray-600 hover:bg-gray-500" onclick="minimizeWindow(${windowId})">
+              <span class="sr-only">最小化</span>
+            </button>
+            <button class="window-control bg-yellow-500 hover:bg-yellow-600" onclick="maximizeWindow(${windowId})">
+              <span class="sr-only">最大化</span>
+            </button>
+            <button class="window-control bg-red-500 hover:bg-red-600" onclick="closeWindow(${windowId})">
+              <span class="sr-only">关闭</span>
+            </button>
+          </div>
+        </div>
+        <div class="window-content">
+          ${template.content}
+        </div>
+      `;
+      
+      document.body.appendChild(windowElement);
+      
+      // 更新系统状态
+      systemState.windows.push({
+        id: windowId,
+        type,
+        title: template.title,
+        isMaximized: false
+      });
+      
+      // 更新任务栏图标状态
+      updateTaskbarIcons();
+    }
+
+    // 关闭窗口
+    function closeWindow(id) {
+      const windowElement = document.getElementById(`window-${id}`);
+      if (windowElement) {
+        windowElement.remove();
+      }
+      
+      // 更新系统状态
+      systemState.windows = systemState.windows.filter(w => w.id !== id);
+      
+      // 更新任务栏图标状态
+      updateTaskbarIcons();
+    }
+
+    // 最大化窗口
+    function maximizeWindow(id) {
+      const windowElement = document.getElementById(`window-${id}`);
+      const windowData = systemState.windows.find(w => w.id === id);
+      
+      if (windowData.isMaximized) {
+        // 恢复窗口大小
+        windowElement.classList.remove('maximized');
+        windowElement.style.width = `${windowData.originalWidth}px`;
+        windowElement.style.height = `${windowData.originalHeight}px`;
+        windowElement.style.left = `${windowData.originalLeft}px`;
+        windowElement.style.top = `${windowData.originalTop}px`;
+      } else {
+        // 保存原始尺寸和位置
+        windowData.originalWidth = windowElement.offsetWidth;
+        windowData.originalHeight = windowElement.offsetHeight;
+        windowData.originalLeft = windowElement.offsetLeft;
+        windowData.originalTop = windowElement.offsetTop;
+        
+        // 最大化窗口
+        windowElement.classList.add('maximized');
+      }
+      
+      windowData.isMaximized = !windowData.isMaximized;
+    }
+
+    // 最小化窗口 (简化版，实际应隐藏到任务栏)
+    function minimizeWindow(id) {
+      // 实际实现中应该将窗口隐藏并在任务栏保留图标
+      const windowElement = document.getElementById(`window-${id}`);
+      windowElement.style.zIndex = 0;
+    }
+
+    // 窗口拖拽功能
+    function startDrag(event, windowId) {
+      const windowElement = document.getElementById(`window-${windowId}`);
+      const windowData = systemState.windows.find(w => w.id === windowId);
+      
+      // 如果窗口最大化，则先恢复
+      if (windowData.isMaximized) {
+        maximizeWindow(windowId);
+      }
+      
+      const initialX = event.clientX;
+      const initialY = event.clientY;
+      const initialLeft = windowElement.offsetLeft;
+      const initialTop = windowElement.offsetTop;
+      
+      // 确保当前窗口在最上层
+      windowElement.style.zIndex = getMaxZIndex() + 1;
+      
+      function moveWindow(event) {
+        const deltaX = event.clientX - initialX;
+        const deltaY = event.clientY - initialY;
+        
+        windowElement.style.left = `${initialLeft + deltaX}px`;
+        windowElement.style.top = `${initialTop + deltaY}px`;
+      }
+      
+      function stopDrag() {
+        document.removeEventListener('mousemove', moveWindow);
+        document.removeEventListener('mouseup', stopDrag);
+      }
+      
+      document.addEventListener('mousemove', moveWindow);
+      document.addEventListener('mouseup', stopDrag);
+    }
+
+    // 获取最大ZIndex
+    function getMaxZIndex() {
+      const windows = document.querySelectorAll('.window');
+      let maxZIndex = 10;
+      
+      windows.forEach(window => {
+        const zIndex = parseInt(window.style.zIndex) || 10;
+        if (zIndex > maxZIndex) {
+          maxZIndex = zIndex;
+        }
+      });
+      
+      return maxZIndex;
+    }
+
+    // 更新任务栏图标状态
+    function updateTaskbarIcons() {
+      const taskbarIcons = document.querySelectorAll('.taskbar-icon');
+      taskbarIcons.forEach(icon => icon.classList.remove('active'));
+      
+      systemState.windows.forEach(window => {
+        const type = window.type;
+        const icon = document.querySelector(`.taskbar-icon[onclick="openWindow('${type}')"]`);
+        if (icon) {
+          icon.classList.add('active');
+        }
+      });
+    }
+
+    // 右键菜单功能
+    document.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      
+      const contextMenu = document.getElementById('contextMenu');
+      contextMenu.style.left = `${event.clientX}px`;
+      contextMenu.style.top = `${event.clientY}px`;
+      contextMenu.classList.add('open');
+    });
+    
+    document.addEventListener('click', () => {
+      const contextMenu = document.getElementById('contextMenu');
+      contextMenu.classList.remove('open');
+    });
+
+    // 创建新文件夹
+    function createNewFolder() {
+      const newId = systemState.files.length + 1;
+      const newFolder = {
+        id: newId,
+        name: '新建文件夹',
+        type: 'folder',
+        path: '/',
+        modified: new Date().toISOString().split('T')[0]
+      };
+      
+      systemState.files.push(newFolder);
+      
+      // 如果文件资源管理器已打开，更新其内容
+      const explorerWindow = systemState.windows.find(w => w.type === 'explorer');
+      if (explorerWindow) {
+        const windowElement = document.getElementById(`window-${explorerWindow.id}`);
+        const contentArea = windowElement.querySelector('.window-content .grid');
+        
+        const folderElement = document.createElement('div');
+        folderElement.className = 'flex items-center p-3 bg-gray-800 rounded hover:bg-gray-700 cursor-pointer';
+        folderElement.innerHTML = `
+          <i class="fa fa-folder text-yellow-400 mr-3 text-xl"></i>
+          <div>
+            <div>${newFolder.name}</div>
+            <div class="text-xs text-gray-400">${newFolder.modified}</div>
+          </div>
+        `;
+        
+        contentArea.appendChild(folderElement);
+      }
+    }
+
+    // 创建新文本文件
+    function createNewTextFile() {
+      const newId = systemState.files.length + 1;
+      const newFile = {
+        id: newId,
+        name: '新建文本文档.txt',
+        type: 'file',
+        path: '/',
+        modified: new Date().toISOString().split('T')[0]
+      };
+      
+      systemState.files.push(newFile);
+      
+      // 如果文件资源管理器已打开，更新其内容
+      const explorerWindow = systemState.windows.find(w => w.type === 'explorer');
+      if (explorerWindow) {
+        const windowElement = document.getElementById(`window-${explorerWindow.id}`);
+        const contentArea = windowElement.querySelector('.window-content .grid');
+        
+        const fileElement = document.createElement('div');
+        fileElement.className = 'flex items-center p-3 bg-gray-800 rounded hover:bg-gray-700 cursor-pointer';
+        fileElement.innerHTML = `
+          <i class="fa fa-file-text-o text-gray-300 mr-3 text-xl"></i>
+          <div>
+            <div>${newFile.name}</div>
+            <div class="text-xs text-gray-400">${newFile.modified}</div>
+          </div>
+        `;
+        
+        contentArea.appendChild(fileElement);
+      }
+    }
+
+    // 点击开始菜单外区域关闭开始菜单
+    document.addEventListener('click', (event) => {
+      const startMenu = document.getElementById('startMenu');
+      const startButton = document.getElementById('startButton');
+      
+      if (!startMenu.contains(event.target) && event.target !== startButton) {
+        startMenu.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

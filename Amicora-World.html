@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amicora World - 我的世界服务器</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link rel="icon" href="Amicora logo.ico">
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3ad59fcd', 
+            secondary: '#EC4899', // 辅助色
+            accent: '#10B981', // 强调色
+            glass: 'rgba(255, 255, 255, 0.15)', // 玻璃态背景
+            'glass-dark': 'rgba(17, 24, 39, 0.85)', // 深色模式玻璃态
+            'glass-hover': 'rgba(255, 255, 255, 0.25)', // 玻璃态悬停背景
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.6s ease-out forwards',
+            'slide-up': 'slideUp 0.5s ease-out forwards',
+          },
+           keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            }
+          }
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      }
+      .text-gradient {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+      .bg-blur {
+        backdrop-filter: blur(8px);
+      }
+    }
+  </style>
+  
+  <style>
+    /* 全局样式 */
+    body {
+      transition: background-image 1s ease-in-out, background-color 0.3s ease;
+      overflow-x: hidden;
+    }
+    
+    /* 背景图样式 */
+    .bg-anime {
+      background-image: url('https://imgapi.siiway.top/image');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+    
+    .bg-pure {
+      background-image: none;
+    }
+    
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(92, 246, 233, 0.5);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgb(92, 246, 128);
+    }
+    
+    /* 平滑滚动 */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* 动画延迟类 */
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+    .delay-600 { animation-delay: 0.6s; }
+
+    /* 滚动动画观察器 */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .scroll-reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+
+  <!-- 粉色主题样式 -->
+  <style>
+    .pink-theme {
+      --primary-color: #EC4899;
+      --secondary-color: #F9A8D4;
+      --dark-color: #BE185D;
+      --light-color: #FEF2F7;
+    }
+
+    .pink-theme .bg-primary {
+      background-color: #EC4899 !important;
+    }
+
+    .pink-theme .text-primary {
+      color: #EC4899 !important;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 bg-anime">
+  <!-- 音频播放器 -->
+  <audio id="bgMusic" loop>
+    <source src="mp3/星相运轨.mp3" type="audio/mpeg">
+  </audio>
+
+
+<!-- 在<body>标签内最上方添加开场动画容器 -->
+<div id="introAnimation" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
+  <div class="text-center">
+    <img 
+      src="images/example.webp"  
+      alt="Amicora Logo" 
+      class="w-24 h-24 md:w-32 md:h-32 rounded-lg object-contain mx-auto mb-6 opacity-0 scale-90"  
+    />
+    <h1 class="text-3xl md:text-5xl font-bold text-white text-shadow opacity-0">
+      Amicora World
+    </h1>
+  </div>
+</div>
+
+<!-- 在</body>结束前添加动画脚本 -->
+<script>
+  // 页面加载完成后执行开场动画
+  document.addEventListener('DOMContentLoaded', () => {
+    const intro = document.getElementById('introAnimation');
+    const logo = intro.querySelector('img');
+    const title = intro.querySelector('h1');
+    
+    // 显示Logo并添加缩放动画
+    setTimeout(() => {
+      logo.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
+      logo.style.opacity = '1';
+      logo.style.transform = 'scale(1)';
+    }, 300);
+    
+    // 显示标题并添加淡入动画
+    setTimeout(() => {
+      title.style.transition = 'opacity 1s ease-out';
+      title.style.opacity = '1';
+    }, 800);
+    
+    // 动画结束后隐藏开场画面
+    setTimeout(() => {
+      intro.style.transition = 'opacity 1s ease-out, transform 1s ease-in-out';
+      intro.style.opacity = '0';
+      intro.style.transform = 'scale(1.1)';
+      
+      // 完全隐藏后移除元素
+      setTimeout(() => {
+        intro.style.display = 'none';
+      }, 1000);
+    }, 2500);
+  });
+</script>
+
+  <!-- 导航栏 -->
+  <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <nav class="glass-effect bg-glass dark:bg-glass-dark border-b border-white/10 dark:border-gray-800">
+      <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <!-- Logo 和名称 -->
+        <div class="flex items-center space-x-2">
+          <img 
+            src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg"  
+            alt="Amicora Logo" 
+            class="w-10 h-10 rounded-lg object-contain"  
+          />
+          <span class="text-xl font-bold text-white text-shadow">
+            Amicora World
+          </span>
+        </div>
+        
+        <!-- 导航链接 - 桌面端 -->
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#home" class="text-white hover:text-primary transition-colors py-2 tooltip relative" data-tooltip="首页">
+            首页
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="#status" class="text-white hover:text-primary transition-colors tooltip relative" data-tooltip="服务器状态信息">
+            服务器状态
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          <a href="#gallery" class="text-white hover:text-primary transition-colors tooltip relative" data-tooltip="游戏截图展示">
+            截图展示
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 hover:w-full"></span>
+          </a>
+          
+          <!-- 音乐控制 -->
+          <div class="flex items-center space-x-2">
+            <button id="prevSong" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" data-tooltip="上一首">
+              <i class="fa fa-step-backward"></i>
+            </button>
+            <button id="playPause" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" data-tooltip="播放/暂停">
+              <i class="fa fa-play"></i>
+            </button>
+            <button id="nextSong" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" data-tooltip="下一首">
+              <i class="fa fa-step-forward"></i>
+            </button>
+          </div>
+          
+          <!-- 主题切换按钮 -->
+          <div class="flex items-center space-x-4">
+            <button id="greenTheme" class="w-6 h-6 rounded-full bg-primary border-2 border-white"></button>
+            <button id="pinkTheme" class="w-6 h-6 rounded-full bg-pink-400 border-2 border-transparent"></button>
+          </div>
+    
+        <!-- 移动端菜单按钮 -->
+        <button id="mobileMenuBtn" class="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white">
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+      
+      <!-- 移动端菜单 -->
+      <div id="mobileMenu" class="md:hidden hidden glass-effect bg-glass/90 dark:bg-glass-dark/90 border-t border-white/10 transform transition-all duration-300 ease-in-out">
+        <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+          <a href="#home" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">首页</a>
+          <a href="#status" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">服务器状态</a>
+          <a href="#gallery" class="text-white hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-white/10">截图展示</a>
+          
+          <!-- 移动端音乐控制 -->
+          <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/10">
+            <span class="text-white">背景音乐</span>
+            <div class="flex items-center space-x-3">
+              <button id="mobilePrevSong" class="text-white">
+                <i class="fa fa-step-backward"></i>
+              </button>
+              <button id="mobilePlayPause" class="text-white">
+                <i class="fa fa-play"></i>
+              </button>
+              <button id="mobileNextSong" class="text-white">
+                <i class="fa fa-step-forward"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 主横幅区域 -->
+  <section id="home" class="pt-32 pb-20 relative overflow-hidden">
+    <!-- 背景装饰 -->
+    <div class="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full filter blur-3xl"></div>
+    <div class="absolute bottom-10 right-10 w-80 h-80 bg-secondary/20 rounded-full filter blur-3xl"></div>
+    <div class="absolute top-1/2 left-1/3 w-40 h-40 bg-primary/5 rounded-full filter blur-2xl animate-float-delay"></div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="flex flex-col md:flex-row items-center">
+        <div class="md:w-1/2 mb-10 md:mb-0 text-center md:text-left">
+          <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold leading-tight text-shadow-lg text-white">
+            欢迎来到 <span class="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Amicora World</span>
+          </h1>
+          <p class="text-[clamp(1rem,2vw,1.25rem)] text-gray-200 mt-4 max-w-lg">
+            一个充满创造力与友谊的我的世界服务器，一起探索、建造、冒险！
+          </p>
+          <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+            <a href="home.html" class="px-8 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 text-center relative overflow-hidden group">
+              打开主页
+              <span class="absolute inset-0 bg-white/10 transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100 origin-left"></span>
+            </a>
+            <a href="#status" class="px-8 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1 text-center">
+              服务器状态
+            </a>
+          </div>
+         
+          <!-- 特色标签 -->
+          <div class="mt-12 flex flex-wrap gap-3 justify-center md:justify-start">
+            <span class="bg-white/10 px-3 py-1 rounded-full shadow-sm text-sm flex items-center text-white">
+              <i class="fa fa-users text-primary mr-1"></i> 多人联机
+            </span>
+            <span class="bg-white/10 px-3 py-1 rounded-full shadow-sm text-sm flex items-center text-white">
+              <i class="fa fa-cubes text-primary mr-1"></i> 创意建造
+            </span>
+            <span class="bg-white/10 px-3 py-1 rounded-full shadow-sm text-sm flex items-center text-white">
+              <i class="fa fa-map-signs text-primary mr-1"></i> 冒险探索
+            </span>
+          </div>
+        </div>
+        
+        <div class="md:w-1/2 animate-float">
+          <div class="relative">
+            <img src="images/Cat eat.gif" alt="Amicora World" class="rounded-xl shadow-2xl w-full max-w-lg mx-auto border border-white/10">
+            <div class="absolute -bottom-5 -left-5 bg-white/10 backdrop-blur-sm rounded-lg shadow-lg p-3 flex items-center space-x-3 transform transition-transform hover:scale-105 border border-white/20">
+              <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+              <span class="font-medium text-white">服务器离线</span>
+            </div>
+            <!-- 装饰元素 -->
+            <div class="absolute -top-4 -right-4 w-20 h-20 bg-secondary/30 rounded-full blur-xl"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 服务器状态 -->
+  <section id="status" class="py-20 relative scroll-mt-24">
+    <div class="container mx-auto px-4">
+      <div class="glass-effect bg-glass dark:bg-glass-dark rounded-3xl p-6 md:p-10 border border-white/10 dark:border-gray-800 shadow-xl">
+        <div class="flex justify-content-between items-center mb-8">
+          <h2 class="text-3xl md:text-4xl font-bold text-white text-shadow flex items-center">
+            <i class="fa fa-server mr-3 text-primary"></i>服务器状态
+          </h2>
+          <span class="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm flex items-center">
+            <i class="fa fa-circle mr-1"></i> 离线
+          </span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- 服务器信息卡片 -->
+          <div class="glass-effect bg-white/5 rounded-2xl p-6 border border-white/10 shadow-lg card-hover">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                <i class="fa fa-server text-primary"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white">服务器信息</h3>
+            </div>
+            <ul class="space-y-3 text-gray-200">
+              <li class="flex justify-between">
+                <span>服务器版本</span>
+                <span class="font-medium">1.21.8</span>
+              </li>
+              <li class="flex justify-between">
+                <span>在线人数</span>
+                <span class="font-medium">0/20</span>
+              </li>
+              <li class="flex justify-between">
+                <span>IP地址</span>
+                <span class="font-medium">play.vahiru.xyz</span>
+              </li>
+              <li class="flex justify-between">
+                <span>基岩版端口</span>
+                <span class="font-medium">20721</span>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- 服务器性能卡片 -->
+          <div class="glass-effect bg-white/5 rounded-2xl p-6 border border-white/10 shadow-lg card-hover">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                <i class="fa fa-tachometer text-primary"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white">服务器性能</h3>
+            </div>
+            <div class="h-40 mb-4">
+              <canvas id="serverPerformanceChart"></canvas>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div class="bg-white/5 p-3 rounded-lg">
+                <div class="text-gray-400">CPU 使用率</div>
+                <div class="text-white font-medium">0%</div>
+              </div>
+              <div class="bg-white/5 p-3 rounded-lg">
+                <div class="text-gray-400">内存 使用率</div>
+                <div class="text-white font-medium">0%</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 服务器特性卡片 -->
+          <div class="glass-effect bg-white/5 rounded-2xl p-6 border border-white/10 shadow-lg card-hover">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                <img src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg" alt="特性" class="w-6 h-6 rounded-full">
+              </div>
+              <h3 class="text-xl font-bold text-white">关于服务器</h3>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center text-gray-200">
+                <i class="fa fa-check text-primary mr-2"></i>
+                <span>生存模式</span>
+              </div>
+              <div class="flex items-center text-gray-200">
+                <i class="fa fa-check text-primary mr-2"></i>
+                <span>登录方式: 采用正版与 Littleskin 共存</span>
+              </div>
+              <div class="flex items-center text-gray-200">
+                <i class="fa fa-check text-primary mr-2"></i>
+                <span>登录平台: 基岩版与Java版</span>
+              </div>
+              <div class="flex items-center text-gray-200">
+                <i class="fa fa-check text-primary mr-2"></i>
+                <span>类型：原版生存服务器</span>
+              </div>
+              <div class="flex items-center text-gray-200">
+                <i class="fa fa-check text-primary mr-2"></i>
+                <span>基本特性：可生电，困难模式，死亡不掉落，世界大小正常，加入了传送插件“huskhome”</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 截图展示 -->
+  <section id="gallery" class="py-20 relative scroll-mt-24">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl md:text-4xl font-bold mb-12 text-white text-shadow flex items-center">
+        <img src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg" alt="Gallery" class="w-8 h-8 rounded-lg mr-3">
+        截图展示
+      </h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="rounded-xl overflow-hidden shadow-md group hover:shadow-xl transition-all card-hover">
+          <img src="images/001.jpg" alt="游戏截图1" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
+        </div>
+        
+        <div class="rounded-xl overflow-hidden shadow-md group hover:shadow-xl transition-all card-hover">
+          <img src="images/002.jpg" alt="游戏截图2" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
+        </div>
+        
+        <div class="rounded-xl overflow-hidden shadow-md group hover:shadow-xl transition-all card-hover">
+          <img src="images/003.jpg" alt="游戏截图3" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
+        </div>
+        
+        <div class="rounded-xl overflow-hidden shadow-md group hover:shadow-xl transition-all card-hover">
+          <img src="images/004.jpg" alt="游戏截图4" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
+        </div>
+        
+        <div class="rounded-xl overflow-hidden shadow-md group hover:shadow-xl transition-all card-hover">
+          <img src="images/005.jpg" alt="游戏截图5" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
+        </div>
+        
+        <div class="rounded-xl overflow-hidden shadow-md group hover:shadow-xl transition-all card-hover">
+          <img src="images/006.jpg" alt="游戏截图6" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // 主题切换逻辑
+    document.getElementById('greenTheme').addEventListener('click', () => {
+      document.body.classList.remove('pink-theme');
+      localStorage.setItem('theme', 'green');
+      updateThemeButtons();
+    });
+
+    document.getElementById('pinkTheme').addEventListener('click', () => {
+      document.body.classList.add('pink-theme');
+      localStorage.setItem('theme', 'pink');
+      updateThemeButtons();
+    });
+
+    function updateThemeButtons() {
+      const isPink = document.body.classList.contains('pink-theme');
+      document.getElementById('greenTheme').classList.toggle('border-white', !isPink);
+      document.getElementById('greenTheme').classList.toggle('border-transparent', isPink);
+      document.getElementById('pinkTheme').classList.toggle('border-white', isPink);
+      document.getElementById('pinkTheme').classList.toggle('border-transparent', !isPink);
+    }
+
+    // 初始化主题
+    if(localStorage.getItem('theme') === 'pink') {
+      document.body.classList.add('pink-theme');
+      updateThemeButtons();
+    }
+
+    // 移动端菜单切换
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // 背景切换
+    const bgModeToggle = document.getElementById('bgModeToggle');
+    const body = document.body;
+    
+    bgModeToggle.addEventListener('click', () => {
+      body.classList.toggle('bg-anime');
+      body.classList.toggle('bg-pure');
+      
+      // 保存背景模式偏好
+      if(body.classList.contains('bg-anime')) {
+        localStorage.setItem('bgMode', 'image');
+      } else {
+        localStorage.setItem('bgMode', 'pure');
+      }
+    });
+    
+    // 初始化背景模式
+    if(localStorage.getItem('bgMode') === 'pure') {
+      body.classList.remove('bg-anime');
+      body.classList.add('bg-pure');
+    }
+
+    // 网易云音乐API集成
+    const bgMusic = document.getElementById('bgMusic');
+    const playPauseBtn = document.getElementById('playPause');
+    const mobilePlayPauseBtn = document.getElementById('mobilePlayPause');
+    const prevSongBtn = document.getElementById('prevSong');
+    const mobilePrevSongBtn = document.getElementById('mobilePrevSong');
+    const nextSongBtn = document.getElementById('nextSong');
+    const mobileNextSongBtn = document.getElementById('mobileNextSong');
+    
+    // 音乐播放列表 - 实际项目中可通过网易云API获取
+    const playlist = [
+      { id: 186016, name: "晴天", artist: "周杰伦" },
+      { id: 347230, name: "平凡之路", artist: "朴树" },
+      { id: 28117527, name: "小幸运", artist: "田馥甄" },
+      { id: 481366593, name: "起风了", artist: "买辣椒也用券" }
+    ];
+    
+    let currentSongIndex = 0;
+    
+    // 获取网易云音乐播放链接 (这里使用第三方API示例)
+    function getMusicUrl(songId) {
+      // 实际项目中替换为有效的API接口
+      return `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
+    }
+    
+    // 加载并播放歌曲
+    function loadAndPlaySong(index) {
+      const song = playlist[index];
+      bgMusic.src = getMusicUrl(song.id);
+      
+      bgMusic.onloadedmetadata = () => {
+        bgMusic.play();
+        updatePlayPauseIcon(true);
+      };
+    }
+    
+    // 更新播放/暂停按钮图标
+    function updatePlayPauseIcon(isPlaying) {
+      if(isPlaying) {
+        playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
+        mobilePlayPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
+      } else {
+        playPauseBtn.innerHTML = '<i class="fa fa-play"></i>';
+        mobilePlayPauseBtn.innerHTML = '<i class="fa fa-play"></i>';
+      }
+    }
+    
+    // 播放/暂停切换
+    function togglePlayPause() {
+      if(bgMusic.paused) {
+        bgMusic.play();
+        updatePlayPauseIcon(true);
+      } else {
+        bgMusic.pause();
+        updatePlayPauseIcon(false);
+      }
+    }
+    
+    // 上一首
+    function playPrevSong() {
+      currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
+      loadAndPlaySong(currentSongIndex);
+    }
+    
+    // 下一首
+    function playNextSong() {
+      currentSongIndex = (currentSongIndex + 1) % playlist.length;
+      loadAndPlaySong(currentSongIndex);
+    }
+    
+    // 事件监听
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    mobilePlayPauseBtn.addEventListener('click', togglePlayPause);
+    prevSongBtn.addEventListener('click', playPrevSong);
+    mobilePrevSongBtn.addEventListener('click', playPrevSong);
+    nextSongBtn.addEventListener('click', playNextSong);
+    mobileNextSongBtn.addEventListener('click', playNextSong);
+    
+    // 歌曲结束时自动播放下一首
+    bgMusic.addEventListener('ended', playNextSong);
+
+    // 初始化服务器性能图表
+    const ctx = document.getElementById('serverPerformanceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['10分钟前', '8分钟前', '6分钟前', '4分钟前', '2分钟前', '现在'],
+        datasets: [{
+          label: 'CPU 使用率',
+          data: [0, 0, 0, 0, 0, 0],
+          borderColor: '#3ad59fcd',
+          backgroundColor: 'rgba(58, 213, 159, 0.1)',
+          tension: 0.4,
+          fill: true
+        }, {
+          label: '内存 使用率',
+          data: [0, 0, 0, 0, 0, 0],
+          borderColor: '#EC4899',
+          backgroundColor: 'rgba(236, 72, 153, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'rgba(255, 255, 255, 0.9)'
+            }
+          }
+        }
+      }
+    });
+
+    // 滚动动画
+    const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
+    
+    function checkScroll() {
+      scrollRevealElements.forEach(element => {
+        const elementTop = element.getBoundingClientRect().top;
+        const elementVisible = 150;
+        
+        if (elementTop < window.innerHeight - elementVisible) {
+          element.classList.add('active');
+        }
+      });
+    }
+    
+    window.addEventListener('scroll', checkScroll);
+    checkScroll(); // 初始检查
+  </script>
+</body>
+</html>

@@ -261,6 +261,7 @@
       </div>
     </section>
     
+
     <!-- 第二屏 -->
     <section id="screen2" class="screen" style="background-image: url('images/【哲风壁纸】小镇-山脉-村庄.png');">
       <div class="absolute inset-0 bg-black/40"></div>
@@ -296,32 +297,64 @@
     </section>
     
     <!-- 第三屏 -->
-    <section id="screen3" class="screen" style="background-image: url('images/【哲风壁纸】小镇-山脉-山谷.png');">
-      <div class="absolute inset-0 bg-black/40"></div>
-      
-      <!-- 装饰几何图形 -->
-      <div class="geometry w-60 h-60 rounded-full border-4 border-secondary/30 top-10 left-1/4 animate-float delay-200"></div>
-      <div class="geometry w-24 h-24 bg-accent/20 rotate-12 bottom-20 right-1/3 animate-float delay-400"></div>
-      
-      <div class="container mx-auto px-6 h-full flex flex-col justify-center relative z-10">
-        <h2 class="text-[clamp(1.8rem,5vw,3.5rem)] font-display font-bold text-shadow-lg mb-10 animate-fade-in">PRODUCTIONS作品及解决方案</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          <!-- 项目1 -->
-          <div class="project-card glass-effect bg-glass rounded-2xl overflow-hidden border border-white/10 shadow-xl card-hover animate-slide-up delay-200 group">
-            <div class="h-56 overflow-hidden">
-              <img src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg" alt="项目图片" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-              <div class="project-overlay absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 transition-opacity duration-300 flex items-end p-6">
-                <p class="text-white cursor-pointer" onclick="window.location.href='Amicora-World.html'">点击查看详情</p>
-              </div>
+<section id="screen3" class="screen" style="background-image: url('images/【哲风壁纸】小镇-山脉-山谷.png');">
+  <div class="absolute inset-0 bg-black/40"></div>
+  
+  <!-- 装饰几何图形 -->
+  <div class="geometry w-60 h-60 rounded-full border-4 border-secondary/30 top-10 left-1/4 animate-float delay-200"></div>
+  <div class="geometry w-24 h-24 bg-accent/20 rotate-12 bottom-20 right-1/3 animate-float delay-400"></div>
+  
+  <div class="container mx-auto px-6 h-full flex flex-col justify-center relative z-10">
+    <h2 class="text-[clamp(1.8rem,5vw,3.5rem)] font-display font-bold text-shadow-lg mb-10 animate-fade-in">PRODUCTIONS作品及解决方案</h2>
+    
+    <!-- 作品展示区域 - 三栏布局 -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <!-- 左侧：作品缩略图列表 -->
+      <div class="lg:col-span-2 animate-slide-in-left delay-200">
+        <div class="glass-effect bg-glass rounded-2xl border border-white/10 shadow-xl p-4 h-full">
+          <h3 class="text-lg font-semibold mb-4 text-center">作品列表</h3>
+          <div class="space-y-3">
+            <div class="project-thumbnail cursor-pointer rounded-xl overflow-hidden border-2 border-primary">
+              <!-- 缩略图限制最大高度 -->
+              <img src="images/4339D008290ECA9B05FFD69AF2EC3351.jpg" alt="Amicora World 缩略图" class="w-full h-auto max-h-32 object-cover">
             </div>
-            <div class="p-6">
-              <h3 class="text-xl font-bold mb-2">Amicora World</h3>
-              <p class="text-white/80">Minecraft服务器</p>
-            </div>
+            <!-- 可以添加更多作品缩略图 -->
           </div>
-          
-    </section>
+        </div>
+      </div>
+      
+      <!-- 中间：作品大图展示 -->
+      <div class="lg:col-span-5 animate-fade-in delay-400">
+        <div class="glass-effect bg-glass rounded-2xl border border-white/10 shadow-xl p-6 h-full flex items-center justify-center">
+          <div class="project-large-view">
+            <!-- 大图限制最大高度和最大宽度，保持响应式 -->
+            <img src="images/001.jpg" alt="Amicora World 大图" class="w-full h-auto max-h-[60vh] max-w-full rounded-xl shadow-lg object-contain">
+          </div>
+        </div>
+      </div>
+      
+      <!-- 右侧：作品介绍和按钮 -->
+      <div class="lg:col-span-5 animate-slide-in-right delay-600">
+        <div class="glass-effect bg-glass rounded-2xl border border-white/10 shadow-xl p-6 h-full">
+          <div class="project-details">
+            <h3 class="text-2xl font-bold mb-4">Amicora World</h3>
+            <p class="text-white/80 mb-6 leading-relaxed">
+              Amicora World 是一个精心设计的 Minecraft 服务器，致力于为玩家提供独特而丰富的游戏体验。我们拥有自定义的游戏机制、精美的建筑和活跃的社区，让每一位玩家都能在这里找到属于自己的乐趣。
+            </p>
+            <p class="text-white/80 mb-8 leading-relaxed">
+              服务器定期更新内容，举办各种活动，并有专业的管理团队维护秩序，确保玩家能够享受安全、公平、愉快的游戏环境。
+            </p>
+            <a href="Amicora-World-index.html" class="inline-flex items-center glass-effect bg-primary/30 border border-primary/50 text-white px-6 py-3 rounded-full font-medium hover:bg-primary/50 transition-all duration-300">
+              <i class="fa fa-external-link mr-2"></i> 官方网站
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
     
     <!-- 第四屏 -->
     <section id="screen4" class="screen" style="background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');">
@@ -718,6 +751,65 @@
       setInterval(updateEstablishmentTime, 1000);
       updateNavDots();
     });
+
+    // 作品展示切换功能
+const projectThumbnails = document.querySelectorAll('.project-thumbnail');
+const projectLargeView = document.querySelector('.project-large-view img');
+const projectDetails = document.querySelector('.project-details');
+
+// 作品数据（可以根据需要添加更多作品）
+const projects = [
+  {
+    title: "Amicora World",
+    thumbnail: "images/4339D008290ECA9B05FFD69AF2EC3351.jpg",
+    largeImage: "images/001.jpg",
+    description: `
+      Amicora World 是一个精心设计的 Minecraft 服务器，致力于为玩家提供独特而丰富的游戏体验。我们拥有自定义的游戏机制、精美的建筑和活跃的社区，让每一位玩家都能在这里找到属于自己的乐趣。
+      <br><br>
+      服务器定期更新内容，举办各种活动，并有专业的管理团队维护秩序，确保玩家能够享受安全、公平、愉快的游戏环境。
+    `,
+    hasWebsite: true,
+    websiteUrl: "Amicora-World-index.html"
+  }
+  // 可以添加更多作品数据
+];
+
+// 为每个缩略图添加点击事件
+projectThumbnails.forEach((thumbnail, index) => {
+  thumbnail.addEventListener('click', () => {
+    // 移除所有缩略图的选中状态
+    projectThumbnails.forEach(thumb => {
+      thumb.classList.remove('border-primary');
+      thumb.classList.add('border-white/10');
+    });
+    
+    // 添加当前缩略图的选中状态
+    thumbnail.classList.remove('border-white/10');
+    thumbnail.classList.add('border-primary');
+    
+    // 更新大图和详情
+    const project = projects[index];
+    projectLargeView.src = project.largeImage;
+    projectLargeView.alt = `${project.title} 大图`;
+    
+    // 更新详情内容
+    let detailsHtml = `
+      <h3 class="text-2xl font-bold mb-4">${project.title}</h3>
+      <p class="text-white/80 mb-6 leading-relaxed">${project.description}</p>
+    `;
+    
+    // 如果有官方网站，则添加按钮
+    if (project.hasWebsite) {
+      detailsHtml += `
+        <a href="${project.websiteUrl}" class="inline-flex items-center glass-effect bg-primary/30 border border-primary/50 text-white px-6 py-3 rounded-full font-medium hover:bg-primary/50 transition-all duration-300">
+          <i class="fa fa-external-link mr-2"></i> 官方网站
+        </a>
+      `;
+    }
+    
+    projectDetails.innerHTML = detailsHtml;
+  });
+});
   </script>
 </body>
 </html>

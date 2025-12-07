@@ -8,10 +8,252 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link rel="icon" href="Amicora logo.ico">
   
   <!-- Tailwind 配置 -->
-  <script src="Tailwind.js"></script>
+  <script src="js/Tailwind.js"></script>
   
+<style>
+  /* 全局样式 */
+    body {
+      transition: background-image 1s ease-in-out, background-color 0.3s ease;
+      overflow-x: hidden;
+    }
+    
+    /* 背景图样式 */
+    .bg-anime {
+      background-image: url('images/【哲风壁纸】安静氛围-森林1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      
+    }
+    
+    .bg-pure {
+      background-image: none;
+    }
+    
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(92, 246, 233, 0.5);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgb(92, 246, 128);
+    }
+    
+    /* 平滑滚动 */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* 动画延迟类 */
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+    .delay-600 { animation-delay: 0.6s; }
+
+    /* 滚动动画观察器 */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .scroll-reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* 工具提示样式 */
+    .tooltip {
+      position: relative;
+    }
+
+     .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(17, 24, 39, 0.9);
+      color: rgb(255, 255, 255);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 100;
+      animation: fadeIn 0.2s ease-out;
+    }
+  </style>
+
+  <style>
+    /* 添加到现有CSS文件中 */
+#consoleContainer.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+#consoleContainer.minimized {
+  height: 24px;
+}
+
+#consoleContainer.minimized #consoleOutput,
+#consoleContainer.minimized .console-input-container {
+  display: none;
+}
+
+#consoleOutput .error {
+  color: #ff6b6b;
+}
+
+#consoleOutput .info {
+  color: #4ecdc4;
+}
+
+#consoleOutput .system {
+  color: #ffd166;
+}
+  </style>
+
+  <style>
+    /* 添加到现有CSS文件 */
+.search-result-item {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.search-result-item:hover {
+  background-color: rgba(56, 139, 253, 0.1);
+}
+
+.search-result-item .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 0.8rem;
+  object-fit: cover;
+}
+
+.search-result-item .result-info {
+  flex: 1;
+}
+
+.search-result-item .result-title {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.search-result-item .result-type {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: capitalize;
+}
+
+.search-results-header {
+  padding: 0.8rem 1rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 500;
+}
+
+.search-no-results {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.search-no-results i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #d1d5db;
+}
+
+#mobileSearchModal.active {
+  display: flex;
+}
+
+#mobileSearchModal.active #searchModalContent {
+  scale: 1;
+  opacity: 1;
+}
+
+/* 猫耳光标样式 */
+.cat-cursor {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ff69b4" stroke-width="2"><path d="M12 4v16M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg>'), auto;
+}
+
+/* 优化滚动性能 */
+.scroll-reveal {
+  will-change: opacity, transform;
+  contain: layout paint size;
+}
+
+/* 为玻璃态添加更精致的阴影效果 */
+.glass-effect {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 提升文字可读性 */
+.text-white {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* 优化卡片悬停效果 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+  /* 下雨效果样式 */
+  .rainy-background {
+    background-image: url('images/【哲风壁纸】傍晚-树林-森林.png');
+  }
+  
+  #rain-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+  }
+  
+  .raindrop {
+    position: absolute;
+    width: 2px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.8));
+    animation: fall linear infinite;
+  }
+  
+  @keyframes fall {
+    to {
+      transform: translateY(100vh);
+    }
+  }
+
+</style>
+
   <!-- 自定义工具类 -->
   <style type="text/tailwindcss">
     @layer utilities {
@@ -42,7 +284,6 @@
       }
     }
   </style>
-<link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 bg-anime">
@@ -2516,60 +2757,6 @@ document.addEventListener('keydown', (e) => {
                 resetCountdown();
             }
         }, 1000);
-
-// 在home.html中添加彩蛋脚本
-document.addEventListener('DOMContentLoaded', () => {
-  // 猫耳光标彩蛋（按C键触发）
-  let catCursorActive = false;
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'c' && e.ctrlKey) {
-      catCursorActive = !catCursorActive;
-      document.body.classList.toggle('cat-cursor', catCursorActive);
-      
-      // 显示提示
-      showEasterEggMessage("猫耳光标已" + (catCursorActive ? "激活" : "关闭"));
-    }
-  });
-  
-  // 双击小夜灯触发特殊效果
-  let nightLightClickCount = 0;
-  document.getElementById('nightLight').addEventListener('click', () => {
-    nightLightClickCount++;
-    if (nightLightClickCount >= 5) {
-      // 触发特殊动画
-      document.body.classList.add('party-mode');
-      setTimeout(() => {
-        document.body.classList.remove('party-mode');
-        nightLightClickCount = 0;
-      }, 5000);
-      showEasterEggMessage("喵！");
-    }
-  });
-  
-  // 彩蛋提示消息
-  function showEasterEggMessage(text) {
-    const msg = document.createElement('div');
-    msg.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-lg z-50 animate-fade-in';
-    msg.textContent = text;
-    document.body.appendChild(msg);
-    
-    setTimeout(() => {
-      msg.classList.add('opacity-0', 'transition-opacity', 'duration-500');
-      setTimeout(() => msg.remove(), 500);
-    }, 2000);
-  }
-});
-
-// 优化图片加载非关键JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-  // 动态加载Chart.js（仅在需要时）
-  if(document.getElementById('serverStatusChart')) {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js';
-    script.async = true;
-    document.body.appendChild(script);
-  }
-});
 </script>
 
 <!-- 优化导航栏滚动效果 -->
@@ -2602,28 +2789,7 @@ document.querySelectorAll('.collapse-content img').forEach(img => {
   });
 });
 
-// 优化搜索功能
-const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
 
-searchInput.addEventListener('input', debounce(function(e) {
-  const query = e.target.value.trim();
-  if (query.length < 2) {
-    searchResults.classList.add('hidden');
-    return;
-  }
-  
-  // 搜索逻辑...
-}, 300)); // 防抖处理
-
-// 防抖函数
-function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
 
 // 优化服务器状态轮询
 let statusPolling;
@@ -2670,10 +2836,7 @@ document.addEventListener('visibilitychange', function() {
 });
 </script>
 
-<script src="rainy-background.js"></script>
-<noscript>
-  <p>请启用JavaScript以获得最佳体验。</p>
-</noscript>
+<script src="js/rainy-background.js"></script>
 
 </body>
 </html>

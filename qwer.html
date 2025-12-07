@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>零岚忆构 - 起始页</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8A9FD1',
+            secondary: '#C8A2C8',
+            accent: '#FFB6C1',
+            dark: 'rgba(10, 10, 25, 0.7)',
+            light: 'rgba(255, 255, 255, 0.1)',
+          },
+          fontFamily: {
+            rounded: ['"Nunito"', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 引入圆润字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .glass-dark {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(10, 10, 25, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .text-shadow {
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+      .slide-transition {
+        transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+      }
+      .geometric-shape {
+        position: absolute;
+        opacity: 0.1;
+        z-index: 0;
+      }
+    }
+  </style>
+  
+  <style>
+    /* 基础样式 */
+    body {
+      font-family: 'Nunito', system-ui, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    /* 滑动容器 */
+    .slides-container {
+      display: flex;
+      height: 100vh;
+      will-change: transform;
+    }
+    
+    .slide {
+      min-width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* 背景图样式 */
+    .slide-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      filter: brightness(0.7);
+    }
+    
+    /* 滚动提示动画 */
+    .scroll-indicator {
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+      40% {transform: translateY(-10px);}
+      60% {transform: translateY(-5px);}
+    }
+    
+    /* 搜索框动画 */
+    .search-box:focus-within {
+      transform: scale(1.02);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    }
+    
+    .search-box input:focus {
+      outline: none;
+    }
+    
+    /* 快捷图标动画 */
+    .shortcut-icon {
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .shortcut-icon:hover {
+      transform: scale(1.1) rotate(5deg);
+    }
+    
+    /* 加载动画 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.8s ease forwards;
+    }
+    
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+    
+    /* 几何图形动画 */
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    
+    .floating {
+      animation: float 8s ease-in-out infinite;
+    }
+    
+    .floating-delay-1 { animation-delay: 1s; }
+    .floating-delay-2 { animation-delay: 2s; }
+    .floating-delay-3 { animation-delay: 3s; }
+  </style>
+</head>
+
+<body class="font-rounded text-white">
+  <!-- 滑动容器 -->
+  <div class="slides-container slide-transition" id="slidesContainer">
+    <!-- 第一屏 -->
+    <div class="slide" id="slide1">
+      <!-- 背景图 -->
+      <img src="images/【哲风壁纸】小镇-山脉-山谷.png" alt="二次元背景" class="slide-bg">
+      
+      <!-- 几何图形装饰 -->
+      <div class="geometric-shape floating w-64 h-64 rounded-full border-4 border-primary top-20 right-10"></div>
+      <div class="geometric-shape floating floating-delay-1 w-40 h-40 border-4 border-secondary bottom-40 left-20"></div>
+      <div class="geometric-shape floating floating-delay-2 w-24 h-24 border-4 border-accent top-1/2 left-1/3"></div>
+      
+      <!-- 主内容 -->
+      <div class="container mx-auto px-6 h-full flex flex-col justify-between py-12 relative z-10">
+        <!-- 标题 -->
+        <div class="text-center fade-in">
+          <a href="index.html" target="_blank" class="block">
+            <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-tighter text-shadow">零岚忆构</h1>
+            <p class="text-[clamp(1rem,3vw,1.5rem)] text-white/80 mt-2 tracking-widest">JI LAN YI GOU</p>
+          </a>
+        </div>
+        
+        <!-- 中间内容 -->
+        <div class="flex flex-col items-center justify-center flex-grow pt-10 pb-20">
+          <!-- 欢迎语 -->
+          <div class="text-center mb-8 fade-in delay-100">
+            <h2 id="greeting" class="text-[clamp(1.5rem,5vw,2.5rem)] font-light text-shadow mb-4"></h2>
+            <p id="dailyQuote" class="text-[clamp(1rem,3vw,1.25rem)] text-white/90 max-w-2xl mx-auto italic"></p>
+          </div>
+          
+          <!-- 搜索框 -->
+          <div class="w-full max-w-2xl glass rounded-full p-3 flex items-center mb-10 transition-all duration-300 search-box fade-in delay-200">
+            <i class="fa fa-search text-white/70 px-3"></i>
+            <input type="text" placeholder="搜索任何内容..." class="flex-grow bg-transparent border-none text-white placeholder-white/50 text-lg">
+            <button class="glass-dark hover:bg-white/20 transition-colors p-2 rounded-full mx-1">
+              <i class="fa fa-microphone text-white/70"></i>
+            </button>
+            <button class="glass-dark hover:bg-white/20 transition-colors p-2 rounded-full mx-1">
+              <i class="fa fa-camera text-white/70"></i>
+            </button>
+          </div>
+          
+          <!-- 快捷图标 -->
+          <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 w-full max-w-3xl fade-in delay-300">
+            <a href="https://www.google.com" target="_blank" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-google text-xl"></i>
+                </div>
+                <span class="text-sm text-center">谷歌</span>
+              </div>
+            </a>
+            <a href="https://www.doubao.com/chat" target="_blank" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-doubao text-xl"></i>
+                </div>
+                <span class="text-sm text-center">豆包</span>
+              </div>
+            </a>
+            <a href="https://www.bilibili.com" target="_blank" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-play-circle text-xl"></i>
+                </div>
+                <span class="text-sm text-center">B站</span>
+              </div>
+            </a>
+            <a href="https://chat.deepseek.com/" target="_blank" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-deepseek text-xl"></i>
+                </div>
+                <span class="text-sm text-center">DeepSeek</span>
+              </div>
+            </a>
+            <a href="https://github.com" target="_blank" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-github text-xl"></i>
+                </div>
+                <span class="text-sm text-center">GitHub</span>
+              </div>
+            </a>
+            <a href="https://www.myfreemp3.com.cn/" target="_blank" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-music text-xl"></i>
+                </div>
+                <span class="text-sm text-center">MyFreeMP3</span>
+              </div>
+            </a>
+            <a href="#" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-plus text-xl"></i>
+                </div>
+                <span class="text-sm text-center">添加</span>
+              </div>
+            </a>
+            <a href="#" class="shortcut-icon">
+              <div class="glass rounded-xl p-4 flex flex-col items-center hover:bg-white/20 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <i class="fa fa-th text-xl"></i>
+                </div>
+                <span class="text-sm text-center">更多</span>
+              </div>
+            </a>
+          </div>
+          
+          <!-- 时间日期 -->
+          <div class="glass rounded-xl p-4 mt-8 fade-in delay-400">
+            <div id="datetime" class="text-center text-[clamp(1.2rem,4vw,2rem)] font-light"></div>
+          </div>
+        </div>
+        
+        <!-- 底部信息 -->
+        <div class="flex justify-between items-end">
+          <div class="text-white/70 text-sm fade-in delay-500">@JLYG</div>
+          <div class="flex items-center space-x-2 text-white/80 cursor-pointer hover:text-white transition-colors scroll-indicator fade-in delay-500" id="scrollIndicator">
+            <span>SCROLL</span>
+            <i class="fa fa-chevron-right"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 第二屏 -->
+    <div class="slide" id="slide2">
+      <!-- 背景图 -->
+      <img src="images/【哲风壁纸】云海-城堡-天空.png" alt="二次元背景" class="slide-bg">
+      
+      <!-- 几何图形装饰 -->
+      <div class="geometric-shape floating w-72 h-72 border-4 border-accent bottom-20 right-20"></div>
+      <div class="geometric-shape floating floating-delay-1 w-32 h-32 rounded-full border-4 border-primary top-10 left-10"></div>
+      <div class="geometric-shape floating floating-delay-2 w-48 h-48 border-4 border-secondary top-1/3 right-1/4"></div>
+      
+      <!-- 主内容 -->
+      <div class="container mx-auto px-6 h-full flex flex-col py-12 relative z-10">
+        <!-- 标题 -->
+        <div class="text-center fade-in">
+          <a href="index.html" target="_blank" class="block">
+            <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-bold tracking-tighter text-shadow">零岚忆构</h1>
+            <p class="text-[clamp(1rem,3vw,1.5rem)] text-white/80 mt-2 tracking-widest">JI LAN YI GOU</p>
+          </a>
+        </div>
+        
+        <!-- 中间内容：动态壁纸/信息聚合 -->
+        <div class="flex-grow flex flex-col justify-center items-center mt-8">
+          <h2 class="text-2xl md:text-3xl font-light mb-8 text-shadow fade-in delay-100">动态壁纸 & 信息聚合</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
+            <!-- 动态壁纸区域 -->
+            <div class="glass rounded-2xl overflow-hidden hover-lift fade-in delay-200">
+              <div class="p-4 border-b border-white/10">
+                <h3 class="font-medium text-lg">推荐壁纸</h3>
+              </div>
+              <div class="p-4">
+                <div class="space-y-4">
+                  <div class="rounded-xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+                    <img src="images/【哲风壁纸】小镇-山脉-村庄.png" alt="壁纸预览" class="w-full h-40 object-cover">
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <img src="images/【哲风壁纸】小镇-山脉-山谷.png" alt="壁纸缩略图" class="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity">
+                    <img src="images/【哲风壁纸】傍晚-树林-森林.png" alt="壁纸缩略图" class="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity">
+                    <img src="images/0_001.jpg" alt="壁纸缩略图" class="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity">
+                    <img src="images/【哲风壁纸】安静氛围-森林1.jpg" alt="壁纸缩略图" class="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 信息聚合区域 -->
+            <div class="glass rounded-2xl hover-lift fade-in delay-300">
+              <div class="p-4 border-b border-white/10">
+                <h3 class="font-medium text-lg">今日资讯</h3>
+              </div>
+              <div class="p-4 max-h-80 overflow-y-auto">
+                <div class="space-y-4">
+                  <div class="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                    <h4 class="font-medium">服务器关停</h4>
+                    <p class="text-sm text-white/70 mt-1">由于服务器在线人数长时间=0，所以运维组决定将服务器暂时性关停，节省运营所消耗的费用，等到未来再决定再次开机</p>
+                  </div>
+                  <div class="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                    <h4 class="font-medium">白名单计划</h4>
+                    <p class="text-sm text-white/70 mt-1">添加白名单插件，后通过问卷添加用户白名单,问卷(3个问题):1.你的账号为正版账号还是LittleSkin账号(离线账号无法进入服务器，无正版账号请使用LittleSkin账号登入)2.你的游戏内名字为？3.你的QQ号为？</p>
+                  </div>
+                  <div class="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                    <h4 class="font-medium">零岚忆构成立</h4>
+                    <p class="text-sm text-white/70 mt-1">零岚忆构成立于2025年12月1日，是一个致力于创意与技术融合的工作室，我们专注于数字艺术、交互设计与创意开发。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 底部滚动提示 -->
+        <div class="flex justify-between items-end mt-auto">
+          <div class="flex items-center space-x-2 text-white/80 cursor-pointer hover:text-white transition-colors scroll-indicator" id="scrollBackIndicator">
+            <i class="fa fa-chevron-left"></i>
+            <span>BACK</span>
+          </div>
+          <div class="text-white/70 text-sm">@JLYG</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 当前滑动索引
+    let currentSlide = 0;
+    const totalSlides = document.querySelectorAll('.slide').length;
+    const slidesContainer = document.getElementById('slidesContainer');
+    
+    // 初始化页面
+    document.addEventListener('DOMContentLoaded', () => {
+      // 设置欢迎语
+      setGreeting();
+      
+      // 设置日期时间
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+      
+      // 设置每日随机句子
+      setDailyQuote();
+      
+      // 滑动功能
+      setupSwipe();
+      
+      // 滚动指示器点击事件
+      document.getElementById('scrollIndicator').addEventListener('click', () => {
+        navigateSlide(1);
+      });
+      
+      document.getElementById('scrollBackIndicator').addEventListener('click', () => {
+        navigateSlide(-1);
+      });
+    });
+    
+    // 根据时间设置欢迎语
+    function setGreeting() {
+      const hour = new Date().getHours();
+      let greeting;
+      
+      if (hour >= 5 && hour < 10) {
+        greeting = "早上好，欢迎来到零岚忆构，新的一天开始了，充满活力地前进吧。";
+      } else if (hour >= 10 && hour < 14) {
+        greeting = "中午好，欢迎来到零岚忆构，稍作休息，继续享受美好的一天。";
+      } else if (hour >= 14 && hour < 18) {
+        greeting = "下午好，欢迎来到零岚忆构，午后的时光，适合放松心情。";
+      } else if (hour >= 18 && hour < 22) {
+        greeting = "晚上好，欢迎来到零岚忆构，夜幕降临，是时候享受片刻的宁静了。";
+      } else {
+        greeting = "深夜了，欢迎来到零岚忆构，万籁俱寂，正是思考的好时机。";
+      }
+      
+      document.getElementById('greeting').textContent = greeting;
+    }
+    
+    // 更新日期时间
+    function updateDateTime() {
+      const now = new Date();
+      const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        weekday: 'long',
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit'
+      };
+      
+      document.getElementById('datetime').textContent = now.toLocaleString('zh-CN', options);
+    }
+    
+    // 设置每日随机句子
+    function setDailyQuote() {
+      const quotes = [
+        "菩提本无树，明镜亦非台。本来无一物，何处惹尘埃。",
+        "一花一世界，一叶一菩提。",
+        "人生如逆旅，我亦是行人。",
+        "不畏将来，不念过往。如此，安好。",
+        "执手相看泪眼，竟无语凝噎。",
+        "问君能有几多愁？恰似一江春水向东流。",
+        "采菊东篱下，悠然见南山。",
+        "海内存知己，天涯若比邻。",
+        "长风破浪会有时，直挂云帆济沧海。",
+        "路漫漫其修远兮，吾将上下而求索。"
+      ];
+      
+      // 根据日期生成一致的随机索引
+      const date = new Date();
+      const day = date.getDate();
+      const randomIndex = day % quotes.length;
+      
+      document.getElementById('dailyQuote').textContent = quotes[randomIndex];
+    }
+    
+    // 滑动导航
+    function navigateSlide(direction) {
+      currentSlide += direction;
+      
+      // 限制在有效范围内
+      if (currentSlide < 0) currentSlide = 0;
+      if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+      
+      // 应用滑动
+      slidesContainer.style.transform = `translateX(-${currentSlide * 100}vw)`;
+    }
+    
+    // 触摸滑动支持
+    function setupSwipe() {
+      let startX;
+      let endX;
+      
+      slidesContainer.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+      }, false);
+      
+      slidesContainer.addEventListener('touchmove', (e) => {
+        endX = e.touches[0].clientX;
+      }, false);
+      
+      slidesContainer.addEventListener('touchend', () => {
+        // 计算滑动距离
+        const diffX = startX - endX;
+        
+        // 确定是否切换幻灯片
+        if (diffX > 50) {
+          navigateSlide(1); // 向右滑动
+        } else if (diffX < -50) {
+          navigateSlide(-1); // 向左滑动
+        }
+      }, false);
+      
+      // 键盘导航
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+          navigateSlide(1);
+        } else if (e.key === 'ArrowLeft') {
+          navigateSlide(-1);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

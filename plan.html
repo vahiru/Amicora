@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二次元计划管理器 - JLYG</title>
+    <link href="https://fonts.googleapis.com/css2?family=PingFang+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="JLYG logo.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        :root {
+            --primary-color: #ff6b9d;
+            --success-color: #6bcf7f;
+            --warning-color: #ffa726;
+            --danger-color: #ff5252;
+            --bg-blur: rgba(255, 255, 255, 0.2);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border-radius: 20px;
+            --spacing: 24px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            overflow-x: hidden;
+            background-attachment: fixed;
+        }
+
+        /* 背景图片容器 */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            filter: blur(5px);
+            transform: scale(1.1);
+            transition: transform 0.5s ease;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--spacing);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), #ff4081);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(0, 0, 0, 0.6);
+            font-weight: 400;
+        }
+
+        /* 主要内容区域 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing);
+            flex: 1;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 毛玻璃卡片 */
+        .glass-card {
+            background-image: url('images/【哲风壁纸】云海-城堡-天空.png');
+            background: var(--card-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: var(--transition);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #ff4081);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            font-size: 1.4rem;
+        }
+
+        /* 添加计划表单 */
+        .add-plan-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-textarea {
+            padding: 15px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #ff4081);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        /* 计划列表 */
+        .plans-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .plans-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .plans-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        .plans-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        .plan-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            transition: var(--transition);
+            animation: slideInRight 0.5s ease-out;
+            cursor: pointer;
+        }
+
+        .plan-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .plan-status {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: var(--transition);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .plan-content {
+            flex: 1;
+        }
+
+        .plan-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .plan-desc {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .plan-item:hover .plan-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* 状态分类 */
+        .status-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .status-tab {
+            padding: 10px 20px;
+            border-radius: 50px;
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .status-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* 状态样式 */
+        .status-pending .plan-status {
+            border-color: var(--warning-color);
+        }
+
+        .status-completed .plan-status::after {
+            content: '✓';
+            color: var(--success-color);
+        }
+
+        .status-completed .plan-title {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .status-abandoned .plan-status::after {
+            content: '✗';
+            color: var(--danger-color);
+        }
+
+        .status-abandoned .plan-title {
+            opacity: 0.5;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: rgba(0, 0, 0, 0.5);
+            font-size: 0.9rem;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        /* 动画 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 2.2rem;
+            }
+            
+            .glass-card {
+                padding: 20px;
+            }
+            
+            .main-content {
+                gap: 15px;
+            }
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景图片 -->
+    <div class="background-container">
+        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" alt="二次元风格背景" class="background-image" id="backgroundImage">
+    </div>
+
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <h1 class="title">✨ 二次元计划管理器</h1>
+            <p class="subtitle">记录你的每一份计划，无论是完成、进行中还是已放弃</p>
+        </header>
+
+        <!-- 主要内容 -->
+        <main class="main-content">
+            <!-- 添加计划区域 -->
+            <section class="glass-card">
+                <h2 class="section-title">
+                    <span>📝 添加新计划</span>
+                </h2>
+                <form id="addPlanForm" class="add-plan-form">
+                    <div class="form-group">
+                        <label class="form-label">计划标题</label>
+                        <input type="text" id="planTitle" class="form-input" placeholder="输入计划标题..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">计划描述 (可选)</label>
+                        <textarea id="planDesc" class="form-textarea" placeholder="输入计划详细描述..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="addPlanBtn">
+                        <span>添加计划</span>
+                        <span class="loading" style="display: none;"></span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- 计划列表区域 -->
+            <section class="glass-card">
+                <h2 class="section-title">
+                    <span>📋 我的计划</span>
+                </h2>
+                
+                <!-- 状态分类标签 -->
+                <div class="status-tabs">
+                    <button class="status-tab active" data-status="all">全部计划</button>
+                    <button class="status-tab" data-status="pending">未完成</button>
+                    <button class="status-tab" data-status="completed">已完成</button>
+                    <button class="status-tab" data-status="abandoned">已放弃</button>
+                </div>
+                
+                <!-- 计划列表容器 -->
+                <div class="plans-container" id="plansContainer">
+                    <!-- 计划项将通过JavaScript动态添加 -->
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>暂无计划，开始添加你的第一个计划吧！</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>© JLYG - 二次元计划管理器 v1.0</p>
+        </footer>
+    </div>
+
+    <script>
+        // 模拟计划数据
+        let plans = [
+            {
+                id: 1,
+                title: "完成项目原型设计",
+                description: "设计并完成项目的前端原型，包括所有主要页面和交互",
+                status: "completed",
+                createdAt: new Date()
+            },
+            {
+                id: 2,
+                title: "学习TypeScript高级特性",
+                description: "深入学习TypeScript的泛型、装饰器等高级特性",
+                status: "pending",
+                createdAt: new Date()
+            },
+            {
+                id: 3,
+                title: "健身计划",
+                description: "每周三次健身房训练，重点训练胸肌和背部",
+                status: "abandoned",
+                createdAt: new Date()
+            },
+            {
+                id: 4,
+                title: "阅读三本书",
+                description: "本月完成三本技术书籍的阅读",
+                status: "pending",
+                createdAt: new Date()
+            }
+        ];
+
+        // 当前过滤状态
+        let currentFilter = 'all';
+        let nextId = 5;
+
+        // DOM元素
+        const backgroundImage = document.getElementById('backgroundImage');
+        const addPlanForm = document.getElementById('addPlanForm');
+        const plansContainer = document.getElementById('plansContainer');
+        const statusTabs = document.querySelectorAll('.status-tab');
+        const addPlanBtn = document.getElementById('addPlanBtn');
+
+        // 预加载更多二次元背景图
+        const backgroundImages = [
+            'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80',
+            'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80',
+            'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80',
+            'https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80'
+        ];
+
+        // 随机切换背景
+        function changeBackground() {
+            const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
+            backgroundImage.style.opacity = '0';
+            
+            setTimeout(() => {
+                backgroundImage.src = randomImage;
+                backgroundImage.style.opacity = '0.3';
+            }, 500);
+        }
+
+        // 每30秒切换一次背景
+        setInterval(changeBackground, 30000);
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPlans();
+            setupEventListeners();
+            
+            // 添加一些初始动画
+            document.querySelectorAll('.glass-card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 添加计划表单提交
+            addPlanForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                addNewPlan();
+            });
+
+            // 状态标签点击事件
+            statusTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    statusTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentFilter = tab.dataset.status;
+                    renderPlans();
+                });
+            });
+        }
+
+        // 添加新计划
+        function addNewPlan() {
+            const titleInput = document.getElementById('planTitle');
+            const descInput = document.getElementById('planDesc');
+            
+            const newPlan = {
+                id: nextId++,
+                title: titleInput.value.trim(),
+                description: descInput.value.trim(),
+                status: 'pending',
+                createdAt: new Date()
+            };
+
+            if (!newPlan.title) {
+                showNotification('请输入计划标题', 'warning');
+                return;
+            }
+
+            // 模拟加载状态
+            const originalText = addPlanBtn.innerHTML;
+            addPlanBtn.innerHTML = '<span class="loading"></span>';
+            addPlanBtn.disabled = true;
+
+            setTimeout(() => {
+                plans.unshift(newPlan);
+                renderPlans();
+                
+                // 重置表单
+                titleInput.value = '';
+                descInput.value = '';
+                
+                // 恢复按钮状态
+                addPlanBtn.innerHTML = originalText;
+                addPlanBtn.disabled = false;
+                
+                // 显示成功通知
+                showNotification('计划添加成功！', 'success');
+                
+                // 滚动到新添加的计划
+                const newPlanElement = document.querySelector(`[data-id="${newPlan.id}"]`);
+                if (newPlanElement) {
+                    newPlanElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    newPlanElement.style.animation = 'none';
+                    setTimeout(() => {
+                        newPlanElement.style.animation = 'slideInRight 0.5s ease-out';
+                    }, 10);
+                }
+            }, 600);
+        }
+
+        // 更新计划状态
+        function updatePlanStatus(planId, newStatus) {
+            const planIndex = plans.findIndex(plan => plan.id === planId);
+            if (planIndex !== -1) {
+                const oldStatus = plans[planIndex].status;
+                plans[planIndex].status = newStatus;
+                
+                // 如果过滤状态不是全部，且新状态不符合过滤条件，则移除该计划
+                if (currentFilter !== 'all' && newStatus !== currentFilter) {
+                    plans.splice(planIndex, 1);
+                }
+                
+                renderPlans();
+                
+                // 显示状态变更通知
+                const statusMessages = {
+                    'completed': '计划已完成！',
+                    'abandoned': '计划已放弃',
+                    'pending': '计划恢复为未完成'
+                };
+                
+                if (statusMessages[newStatus]) {
+                    showNotification(statusMessages[newStatus], newStatus);
+                }
+            }
+        }
+
+        // 删除计划
+        function deletePlan(planId) {
+            if (confirm('确定要删除这个计划吗？')) {
+                const planIndex = plans.findIndex(plan => plan.id === planId);
+                if (planIndex !== -1) {
+                    const deletedPlan = plans.splice(planIndex, 1)[0];
+                    renderPlans();
+                    showNotification(`已删除计划: ${deletedPlan.title}`, 'info');
+                }
+            }
+        }
+
+        // 渲染计划列表
+        function renderPlans() {
+            // 过滤计划
+            let filteredPlans = plans;
+            if (currentFilter !== 'all') {
+                filteredPlans = plans.filter(plan => plan.status === currentFilter);
+            }
+
+            // 清空容器
+            plansContainer.innerHTML = '';
+
+            if (filteredPlans.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = `
+                    <div class="empty-icon">${getEmptyIcon()}</div>
+                    <p>${getEmptyMessage()}</p>
+                `;
+                plansContainer.appendChild(emptyState);
+                return;
+            }
+
+            // 渲染每个计划
+            filteredPlans.forEach(plan => {
+                const planElement = createPlanElement(plan);
+                plansContainer.appendChild(planElement);
+            });
+        }
+
+        // 创建计划元素
+        function createPlanElement(plan) {
+            const div = document.createElement('div');
+            div.className = `plan-item status-${plan.status}`;
+            div.dataset.id = plan.id;
+            
+            // 根据状态获取图标
+            const statusIcon = getStatusIcon(plan.status);
+            
+            div.innerHTML = `
+                <div class="plan-status">${statusIcon}</div>
+                <div class="plan-content">
+                    <h3 class="plan-title">${escapeHtml(plan.title)}</h3>
+                    <p class="plan-desc">${escapeHtml(plan.description || '暂无描述')}</p>
+                </div>
+                <div class="plan-actions">
+                    ${plan.status !== 'completed' ? 
+                        '<button class="action-btn complete-btn" title="标记为完成">✓</button>' : ''}
+                    ${plan.status !== 'abandoned' ? 
+                        '<button class="action-btn abandon-btn" title="标记为放弃">✗</button>' : ''}
+                    <button class="action-btn delete-btn" title="删除计划">🗑️</button>
+                </div>
+            `;
+            
+            // 添加事件监听器
+            const completeBtn = div.querySelector('.complete-btn');
+            const abandonBtn = div.querySelector('.abandon-btn');
+            const deleteBtn = div.querySelector('.delete-btn');
+            
+            if (completeBtn) {
+                completeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    updatePlanStatus(plan.id, 'completed');
+                });
+            }
+            
+            if (abandonBtn) {
+                abandonBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    updatePlanStatus(plan.id, 'abandoned');
+                });
+            }
+            
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deletePlan(plan.id);
+                });
+            }
+            
+            // 点击计划项切换待办状态
+            if (plan.status === 'pending') {
+                div.addEventListener('click', () => {
+                    updatePlanStatus(plan.id, 'completed');
+                });
+            } else if (plan.status === 'completed') {
+                div.addEventListener('click', () => {
+                    updatePlanStatus(plan.id, 'pending');
+                });
+            }
+            
+            return div;
+        }
+
+        // 获取状态图标
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'completed': return '✓';
+                case 'abandoned': return '✗';
+                default: return '';
+            }
+        }
+
+        // 获取空状态图标
+        function getEmptyIcon() {
+            switch(currentFilter) {
+                case 'completed': return '✅';
+                case 'abandoned': return '📭';
+                case 'pending': return '📝';
+                default: return '📭';
+            }
+        }
+
+        // 获取空状态消息
+        function getEmptyMessage() {
+            switch(currentFilter) {
+                case 'completed': return '暂无已完成计划';
+                case 'abandoned': return '暂无已放弃计划';
+                case 'pending': return '暂无未完成计划';
+                default: return '暂无计划，开始添加你的第一个计划吧！';
+            }
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            // 添加样式
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${getNotificationColor(type)};
+                color: white;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                z-index: 1000;
+                transform: translateX(150%);
+                transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                font-weight: 500;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 显示通知
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // 3秒后移除通知
+            setTimeout(() => {
+                notification.style.transform = 'translateX(150%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 500);
+            }, 3000);
+        }
+
+        // 获取通知颜色
+        function getNotificationColor(type) {
+            switch(type) {
+                case 'success': return 'linear-gradient(135deg, var(--success-color), #4caf50)';
+                case 'warning': return 'linear-gradient(135deg, var(--warning-color), #ff9800)';
+                case 'danger': return 'linear-gradient(135deg, var(--danger-color), #f44336)';
+                case 'info': return 'linear-gradient(135deg, #2196f3, #1976d2)';
+                default: return 'linear-gradient(135deg, var(--primary-color), #ff4081)';
+            }
+        }
+
+        // 简单的HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 添加键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            // Ctrl + Enter 添加计划
+            if (e.ctrlKey && e.key === 'Enter') {
+                const focused = document.activeElement;
+                if (focused.id === 'planTitle' || focused.id === 'planDesc') {
+                    addNewPlan();
+                }
+            }
+            
+            // ESC 清除表单
+            if (e.key === 'Escape') {
+                document.getElementById('planTitle').value = '';
+                document.getElementById('planDesc').value = '';
+                document.getElementById('planTitle').focus();
+            }
+        });
+    </script>
+</body>
+</html>
